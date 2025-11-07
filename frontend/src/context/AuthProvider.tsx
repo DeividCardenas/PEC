@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { AuthContext } from "./AuthContext";
+import { User } from "../types";
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
-  const [user, setUser] = useState<{ id: number | null; email: string | null; rol: string | null; permisos: string[] }>(
-    () => {
-      const storedUser = localStorage.getItem("user");
-      return storedUser ? JSON.parse(storedUser) : { id: null, email: null, rol: null, permisos: [] };
-    }
-  );
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
+  const [user, setUser] = useState<User>(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : { id: null, email: null, rol: null, permisos: [] };
+  });
 
   useEffect(() => {
     if (token) {
@@ -35,6 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser({ id: null, email: null, rol: null, permisos: [] });
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("tarifarios");
   };
 
   const value = useMemo(() => ({ token, setToken, user, setUser, logout }), [token, user]);

@@ -35,6 +35,8 @@ const Compare: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
+  // Nota: La protección de autenticación ahora está manejada por ProtectedRoute en App.tsx
+
   // Load Empresas and EPS once
   useEffect(() => {
     const load = async () => {
@@ -47,13 +49,6 @@ const Compare: React.FC = () => {
     };
     load();
   }, []);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!user || !user.id) {
-      navigate('/');
-    }
-  }, [user]);
 
   // Autocomplete
   useEffect(() => {

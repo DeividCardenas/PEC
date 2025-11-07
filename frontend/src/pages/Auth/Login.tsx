@@ -18,12 +18,15 @@ const Login: React.FC = () => {
 
     try {
       const { token, usuario } = await loginUser(email, password);
-      
+
+      // El AuthProvider se encarga de guardar token y user en localStorage
       setToken(token);
       setUser(usuario);
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(usuario));
-      localStorage.setItem("tarifarios", JSON.stringify(usuario.tarifarios)); // Guardar tarifarios
+
+      // Guardar tarifarios (esto no está gestionado por el AuthProvider)
+      if (usuario.tarifarios) {
+        localStorage.setItem("tarifarios", JSON.stringify(usuario.tarifarios));
+      }
 
       navigate("/Menu");
     } catch (err) {

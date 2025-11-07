@@ -5,7 +5,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
-import { fetchProductos, Producto, ProductParams } from "../../services/Productos/productosService";
+import { fetchProductos } from "../../services/Productos/productosService";
+import { Producto, ProductParams } from "../../types";
+import Pagination from "../../components/Pagination";
+import Modal from "../../components/Modal";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const Productos = () => {
   const navigate = useNavigate();
@@ -157,33 +161,17 @@ const Productos = () => {
       </div>
 
       {/* Paginación */}
-      <div className="flex justify-between items-center mb-4 text-sm w-full">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          className={`py-2 px-3 bg-blue-950 hover:bg-gray-400 text-white rounded-md ${currentPage === 1 ? "invisible" : ""
-            }`}
-          style={{ width: "100px" }}
-        >
-          Anterior
-        </button>
-
-        <div className="flex-grow text-center text-white">
-          Página {currentPage} de {totalPages}
-        </div>
-
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          className={`py-2 px-3 bg-blue-950 hover:bg-gray-400 text-white rounded-md ${currentPage === totalPages ? "invisible" : ""
-            }`}
-          style={{ width: "100px" }}
-        >
-          Siguiente
-        </button>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Tabla de productos */}
       {loading ? (
-        <div className="text-center text-white">Cargando...</div>
+        <div className="flex justify-center items-center py-8">
+          <LoadingSpinner size="lg" color="text-white" text="Cargando productos..." />
+        </div>
       ) : (
         <div className="overflow-x-auto shadow-lg rounded-lg">
           <table className="min-w-full text-sm">
@@ -250,40 +238,40 @@ const Productos = () => {
       </div>
 
       {/* Modal para seleccionar columnas adicionales */}
-      {showColumnSelector && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-6 w-11/12 max-w-md">
-            <h2 className="text-xl font-bold mb-4">Selecciona campos adicionales</h2>
-            <div className="flex flex-col gap-3">
-              {extraFieldsList.map((item) => (
-                <label key={item.field} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={tempSelectedExtraFields.includes(item.field)}
-                    onChange={() => toggleTempExtraField(item.field)}
-                    className="mr-2"
-                  />
-                  {item.label}
-                </label>
-              ))}
-            </div>
-            <div className="mt-6 flex justify-end gap-4">
-              <button
-                onClick={handleCancelColumnSelection}
-                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleApplyColumnSelection}
-                className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                Aplicar
-              </button>
-            </div>
-          </div>
+      <Modal
+        isOpen={showColumnSelector}
+        onClose={handleCancelColumnSelection}
+        title="Selecciona campos adicionales"
+        size="md"
+      >
+        <div className="flex flex-col gap-3">
+          {extraFieldsList.map((item) => (
+            <label key={item.field} className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={tempSelectedExtraFields.includes(item.field)}
+                onChange={() => toggleTempExtraField(item.field)}
+                className="mr-2 w-4 h-4"
+              />
+              <span className="text-gray-700">{item.label}</span>
+            </label>
+          ))}
         </div>
-      )}
+        <div className="mt-6 flex justify-end gap-4">
+          <button
+            onClick={handleCancelColumnSelection}
+            className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleApplyColumnSelection}
+            className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+          >
+            Aplicar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
