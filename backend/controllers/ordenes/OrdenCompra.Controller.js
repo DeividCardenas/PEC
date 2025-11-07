@@ -736,17 +736,27 @@ const RechazarOrden = async (req, res) => {
 /**
  * Completar una orden de compra (marcar como recibida)
  * PUT /ordenes-compra/:id_orden_compra/completar
+ * RF003: Actualiza automáticamente el inventario al recibir compras
  */
 const CompletarOrden = async (req, res) => {
   try {
     const { id_orden_compra } = req.params;
+    const id_usuario = req.usuario?.id_usuario; // Usuario autenticado
 
     if (!isValidId(id_orden_compra)) {
       return sendError(res, "ID de orden inválido", 400);
     }
 
+    // Obtener orden con sus detalles
     const orden = await prisma.ordenCompra.findUnique({
       where: { id_orden_compra: parseInt(id_orden_compra) },
+      include: {
+        detalles: {
+          include: {
+            producto: true,
+          },
+        },
+      },
     });
 
     if (!orden) {
@@ -761,38 +771,90 @@ const CompletarOrden = async (req, res) => {
       );
     }
 
-    const ordenCompletada = await prisma.ordenCompra.update({
-      where: { id_orden_compra: parseInt(id_orden_compra) },
-      data: {
-        estado: "completada",
-      },
-      include: {
-        proveedor: true,
-        creado_por: {
-          select: {
-            id_usuario: true,
-            username: true,
-            email: true,
+    // Usar transacción para actualizar orden, stock y crear movimientos de inventario
+    const ordenCompletada = await prisma.$transaction(async (tx) => {
+      // 1. Actualizar estado de la orden
+      const ordenActualizada = await tx.ordenCompra.update({
+        where: { id_orden_compra: parseInt(id_orden_compra) },
+        data: {
+          estado: "completada",
+        },
+      });
+
+      // 2. Actualizar stock de cada producto y crear movimientos de inventario
+      for (const detalle of orden.detalles) {
+        const producto = detalle.producto;
+        const cantidadRecibida = detalle.cantidad;
+        const stockAnterior = producto.stock_actual;
+        const stockNuevo = stockAnterior + cantidadRecibida;
+
+        // Actualizar stock del producto
+        await tx.producto.update({
+          where: { id_producto: producto.id_producto },
+          data: {
+            stock_actual: stockNuevo,
+          },
+        });
+
+        // Crear registro de movimiento de inventario
+        await tx.movimientoInventario.create({
+          data: {
+            id_producto: producto.id_producto,
+            tipo_movimiento: "entrada",
+            cantidad: cantidadRecibida,
+            stock_anterior: stockAnterior,
+            stock_nuevo: stockNuevo,
+            id_orden_compra: parseInt(id_orden_compra),
+            id_usuario: id_usuario || null,
+            motivo: `Recepción de orden de compra ${orden.numero_orden}`,
+            numero_referencia: orden.numero_orden,
+          },
+        });
+      }
+
+      // 3. Retornar orden completa con relaciones
+      return await tx.ordenCompra.findUnique({
+        where: { id_orden_compra: parseInt(id_orden_compra) },
+        include: {
+          proveedor: true,
+          creado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          aprobado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          detalles: {
+            include: {
+              producto: {
+                select: {
+                  id_producto: true,
+                  descripcion: true,
+                  cum: true,
+                  stock_actual: true,
+                  stock_minimo: true,
+                  unidad_medida: true,
+                },
+              },
+            },
           },
         },
-        aprobado_por: {
-          select: {
-            id_usuario: true,
-            username: true,
-            email: true,
-          },
-        },
-        detalles: {
-          include: {
-            producto: true,
-          },
-        },
-      },
+      });
     });
 
     return sendSuccess(
       res,
-      { orden: ordenCompletada },
+      {
+        orden: ordenCompletada,
+        mensaje: "Orden de compra completada e inventario actualizado exitosamente"
+      },
       200,
       "Orden de compra completada exitosamente"
     );

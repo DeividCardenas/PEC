@@ -19,8 +19,9 @@ model Usuario {
   id_rol     Int    @map("rol_id")                                   // ID del rol asociado
   rol        Rol    @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade) // Relación con el rol
 
-  ordenes_creadas  OrdenCompra[] @relation("OrdenesCreadas")        // Órdenes de compra creadas por el usuario
-  ordenes_aprobadas OrdenCompra[] @relation("OrdenesAprobadas")     // Órdenes de compra aprobadas por el usuario
+  ordenes_creadas     OrdenCompra[] @relation("OrdenesCreadas")        // Órdenes de compra creadas por el usuario
+  ordenes_aprobadas   OrdenCompra[] @relation("OrdenesAprobadas")     // Órdenes de compra aprobadas por el usuario
+  movimientos_inventario MovimientoInventario[]                       // Movimientos de inventario realizados
 
   createdAt DateTime @default(now()) @map("fecha_creacion")         // Fecha de creación
   updatedAt DateTime @updatedAt @map("fecha_actualizacion")         // Fecha de última actualización
@@ -163,9 +164,16 @@ model Producto {
   regulacion          String?                                                  // Régimen de regulación (si aplica)
   codigo_barras       String  @unique                                          // Código de barras único
 
+  // Campos de inventario (RF003)
+  stock_actual        Int     @default(0)                                      // Stock actual en inventario
+  stock_minimo        Int     @default(0)                                      // Stock mínimo para alertas
+  stock_maximo        Int?                                                     // Stock máximo (capacidad)
+  unidad_medida       String  @default("unidad")                               // Unidad de medida (unidad, caja, blister, etc.)
+
   laboratorio         Laboratorio           @relation(fields: [id_laboratorio], references: [id_laboratorio])
   tarifarios          TarifarioOnProducto[]
   detalles_orden      DetalleOrdenCompra[]                                     // Detalles de órdenes de compra
+  movimientos         MovimientoInventario[]                                   // Movimientos de inventario
 
   createdAt          DateTime @default(now()) @map("fecha_creacion")
   updatedAt          DateTime @updatedAt @map("fecha_actualizacion")
@@ -238,6 +246,7 @@ model OrdenCompra {
   creado_por            Usuario   @relation("OrdenesCreadas", fields: [id_creado_por], references: [id_usuario])
   aprobado_por          Usuario?  @relation("OrdenesAprobadas", fields: [id_aprobado_por], references: [id_usuario])
   detalles              DetalleOrdenCompra[]                                   // Detalles de productos
+  movimientos_inventario MovimientoInventario[]                                // Movimientos de inventario asociados
 
   creado_en             DateTime @default(now()) @map("creado_en")
   actualizado_en        DateTime @updatedAt @map("actualizado_en")
@@ -261,4 +270,26 @@ model DetalleOrdenCompra {
   actualizado_en   DateTime @updatedAt @map("actualizado_en")
 
   @@map("detalles_orden_compra")
+}
+
+/// Movimientos de inventario (RF003)
+model MovimientoInventario {
+  id_movimiento    Int      @id @default(autoincrement()) @map("id_movimiento")
+  id_producto      Int      @map("producto_id")
+  tipo_movimiento  String                                                       // "entrada", "salida", "ajuste", "devolucion"
+  cantidad         Int                                                          // Cantidad del movimiento (positivo o negativo)
+  stock_anterior   Int                                                          // Stock antes del movimiento
+  stock_nuevo      Int                                                          // Stock después del movimiento
+  id_orden_compra  Int?     @map("orden_compra_id")                            // ID de orden de compra (si aplica)
+  id_usuario       Int?     @map("usuario_id")                                 // Usuario que realizó el movimiento
+  motivo           String?  @db.Text                                           // Descripción o motivo del movimiento
+  numero_referencia String? @map("numero_referencia")                          // Número de factura, guía, etc.
+
+  producto         Producto @relation(fields: [id_producto], references: [id_producto], onDelete: Cascade)
+  usuario          Usuario? @relation(fields: [id_usuario], references: [id_usuario])
+  orden_compra     OrdenCompra? @relation(fields: [id_orden_compra], references: [id_orden_compra])
+
+  creado_en        DateTime @default(now()) @map("creado_en")
+
+  @@map("movimientos_inventario")
 }

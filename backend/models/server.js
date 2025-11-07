@@ -100,6 +100,9 @@ class Server {
     // Rutas de órdenes de compra
     this.app.use(this.path + "ordenes-compra", require("../routes/ordenes/OrdenCompra.routes"));
 
+    // Rutas de inventario (RF003)
+    this.app.use(this.path + "inventario", require("../routes/inventario/Inventario.routes"));
+
     // Rutas para EPS y tarifarios
     this.app.use(this.path + "eps", require("../routes/eps/EPS.routes"));
     this.app.use(this.path + "tarifario", require("../routes/eps/Tarifario.routes"));
