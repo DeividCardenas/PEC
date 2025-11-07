@@ -24,9 +24,12 @@ import {
   rechazarOrden,
   completarOrden,
   fetchEstadisticas,
+  marcarEnProceso,
+  fetchHistorial,
   OrdenCompra,
   CrearOrdenData,
   EstadisticasOrdenes,
+  HistorialCambio,
 } from "../../services/Ordenes/ordenesService";
 import { fetchProveedores, Proveedor } from "../../services/Proveedores/proveedoresService";
 import { fetchProductos } from "../../services/Productos/productosService";
@@ -34,6 +37,7 @@ import { Producto } from "../../types";
 import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import TimelineOrden from "../../components/TimelineOrden";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface ProductoOrden {
@@ -60,6 +64,11 @@ const OrdenesCompra = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [showHistorialModal, setShowHistorialModal] = useState(false); // RF004
+
+  // Estado para historial (RF004)
+  const [historial, setHistorial] = useState<HistorialCambio[]>([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
 
   // Datos de formularios
   const [selectedOrden, setSelectedOrden] = useState<OrdenCompra | null>(null);
@@ -386,8 +395,8 @@ const OrdenesCompra = () => {
 
   // Completar orden
   const handleCompletarOrden = async (orden: OrdenCompra) => {
-    if (orden.estado !== "aprobada") {
-      toast.error("Solo se pueden completar órdenes aprobadas");
+    if (orden.estado !== "aprobada" && orden.estado !== "en_proceso") {
+      toast.error("Solo se pueden completar órdenes aprobadas o en proceso");
       return;
     }
 
@@ -399,6 +408,47 @@ const OrdenesCompra = () => {
     } catch (error: any) {
       console.error("Error al completar orden:", error);
       toast.error(error.response?.data?.msg || "Error al completar la orden");
+    }
+  };
+
+  // Marcar orden en proceso (RF004)
+  const handleMarcarEnProceso = async (orden: OrdenCompra) => {
+    if (orden.estado !== "aprobada") {
+      toast.error("Solo se pueden marcar en proceso órdenes aprobadas");
+      return;
+    }
+
+    if (!user || !user.id) {
+      toast.error("Usuario no autenticado");
+      return;
+    }
+
+    try {
+      await marcarEnProceso(orden.id_orden_compra, { id_usuario: user.id });
+      toast.success("Orden marcada como en proceso");
+      fetchOrdenesData();
+      loadEstadisticas();
+    } catch (error: any) {
+      console.error("Error al marcar orden en proceso:", error);
+      toast.error(error.response?.data?.msg || "Error al marcar la orden en proceso");
+    }
+  };
+
+  // Ver historial de orden (RF004)
+  const handleOpenHistorialModal = async (orden: OrdenCompra) => {
+    setSelectedOrden(orden);
+    setShowHistorialModal(true);
+    setLoadingHistorial(true);
+
+    try {
+      const response = await fetchHistorial(orden.id_orden_compra);
+      setHistorial(response.historial);
+    } catch (error: any) {
+      console.error("Error al cargar historial:", error);
+      toast.error("Error al cargar el historial de la orden");
+      setHistorial([]);
+    } finally {
+      setLoadingHistorial(false);
     }
   };
 
@@ -421,6 +471,7 @@ const OrdenesCompra = () => {
     const badges: Record<string, { color: string; icon: any }> = {
       pendiente: { color: "bg-yellow-200 text-yellow-800", icon: faClock },
       aprobada: { color: "bg-green-200 text-green-800", icon: faCheckCircle },
+      en_proceso: { color: "bg-cyan-200 text-cyan-800", icon: faClock },
       rechazada: { color: "bg-red-200 text-red-800", icon: faTimesCircle },
       completada: { color: "bg-blue-200 text-blue-800", icon: faCheck },
       cancelada: { color: "bg-gray-200 text-gray-800", icon: faTimes },
@@ -428,10 +479,12 @@ const OrdenesCompra = () => {
 
     const badge = badges[estado] || badges.pendiente;
 
+    const nombreEstado = estado === "en_proceso" ? "En Proceso" : estado.charAt(0).toUpperCase() + estado.slice(1);
+
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${badge.color} flex items-center gap-1`}>
         <FontAwesomeIcon icon={badge.icon} />
-        {estado.charAt(0).toUpperCase() + estado.slice(1)}
+        {nombreEstado}
       </span>
     );
   };
@@ -460,7 +513,7 @@ const OrdenesCompra = () => {
 
       {/* Estadísticas */}
       {estadisticas && (
-        <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
           <div className="bg-white rounded-lg p-4 shadow-md">
             <p className="text-gray-600 text-sm">Total Órdenes</p>
             <p className="text-2xl font-bold text-indigo-900">{estadisticas.totalOrdenes}</p>
@@ -473,13 +526,17 @@ const OrdenesCompra = () => {
             <p className="text-gray-600 text-sm">Aprobadas</p>
             <p className="text-2xl font-bold text-green-800">{estadisticas.ordenesAprobadas}</p>
           </div>
-          <div className="bg-red-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Rechazadas</p>
-            <p className="text-2xl font-bold text-red-800">{estadisticas.ordenesRechazadas}</p>
+          <div className="bg-cyan-100 rounded-lg p-4 shadow-md">
+            <p className="text-gray-600 text-sm">En Proceso</p>
+            <p className="text-2xl font-bold text-cyan-800">{estadisticas.ordenesEnProceso || 0}</p>
           </div>
           <div className="bg-blue-100 rounded-lg p-4 shadow-md">
             <p className="text-gray-600 text-sm">Completadas</p>
             <p className="text-2xl font-bold text-blue-800">{estadisticas.ordenesCompletadas}</p>
+          </div>
+          <div className="bg-red-100 rounded-lg p-4 shadow-md">
+            <p className="text-gray-600 text-sm">Rechazadas</p>
+            <p className="text-2xl font-bold text-red-800">{estadisticas.ordenesRechazadas}</p>
           </div>
           <div className="bg-indigo-100 rounded-lg p-4 shadow-md">
             <p className="text-gray-600 text-sm">Monto Total</p>
@@ -523,8 +580,9 @@ const OrdenesCompra = () => {
             <option value="">Todos los estados</option>
             <option value="pendiente">Pendiente</option>
             <option value="aprobada">Aprobada</option>
-            <option value="rechazada">Rechazada</option>
+            <option value="en_proceso">En Proceso</option>
             <option value="completada">Completada</option>
+            <option value="rechazada">Rechazada</option>
             <option value="cancelada">Cancelada</option>
           </select>
         </div>
@@ -623,12 +681,40 @@ const OrdenesCompra = () => {
                             </>
                           )}
                           {orden.estado === "aprobada" && (
+                            <>
+                              <button
+                                onClick={() => handleMarcarEnProceso(orden)}
+                                className="p-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded transition-colors"
+                                title="Marcar En Proceso"
+                              >
+                                <FontAwesomeIcon icon={faClock} />
+                              </button>
+                              <button
+                                onClick={() => handleCompletarOrden(orden)}
+                                className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                                title="Completar"
+                              >
+                                <FontAwesomeIcon icon={faCheck} />
+                              </button>
+                            </>
+                          )}
+                          {orden.estado === "en_proceso" && (
                             <button
                               onClick={() => handleCompletarOrden(orden)}
                               className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
                               title="Completar"
                             >
                               <FontAwesomeIcon icon={faCheck} />
+                            </button>
+                          )}
+                          {/* Botón de historial visible para todos los estados (RF004) */}
+                          {orden.estado !== "pendiente" && (
+                            <button
+                              onClick={() => handleOpenHistorialModal(orden)}
+                              className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                              title="Ver Historial"
+                            >
+                              📋
                             </button>
                           )}
                         </div>
@@ -1340,6 +1426,77 @@ const OrdenesCompra = () => {
           >
             <FontAwesomeIcon icon={faTimesCircle} className="mr-2" />
             Rechazar
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal de Historial (RF004) */}
+      <Modal
+        isOpen={showHistorialModal}
+        onClose={() => {
+          setShowHistorialModal(false);
+          setSelectedOrden(null);
+          setHistorial([]);
+        }}
+        title={`Historial de Orden ${selectedOrden?.numero_orden}`}
+        size="lg"
+      >
+        {loadingHistorial ? (
+          <div className="flex justify-center items-center py-8">
+            <LoadingSpinner size="lg" color="text-indigo-600" text="Cargando historial..." />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Información de la orden */}
+            {selectedOrden && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Estado Actual:</span>
+                    <div className="mt-1">{getEstadoBadge(selectedOrden.estado)}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Proveedor:</span>
+                    <p className="font-medium">{selectedOrden.proveedor?.nombre || "-"}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Fecha Orden:</span>
+                    <p className="font-medium">
+                      {new Date(selectedOrden.fecha_orden).toLocaleDateString("es-CO")}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Monto Total:</span>
+                    <p className="font-medium">
+                      {new Intl.NumberFormat("es-CO", {
+                        style: "currency",
+                        currency: "COP",
+                        minimumFractionDigits: 0,
+                      }).format(Number(selectedOrden.total))}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Timeline del historial */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold mb-4">Historial de Cambios</h3>
+              <TimelineOrden historial={historial} />
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={() => {
+              setShowHistorialModal(false);
+              setSelectedOrden(null);
+              setHistorial([]);
+            }}
+            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
+          >
+            Cerrar
           </button>
         </div>
       </Modal>
