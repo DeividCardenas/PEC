@@ -85,6 +85,7 @@ export interface EstadisticasOrdenes {
   totalOrdenes: number;
   ordenesPendientes: number;
   ordenesAprobadas: number;
+  ordenesEnProceso: number;
   ordenesRechazadas: number;
   ordenesCompletadas: number;
   montoTotal: number | string;

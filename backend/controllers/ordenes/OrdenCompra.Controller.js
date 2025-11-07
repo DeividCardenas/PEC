@@ -969,6 +969,7 @@ const ObtenerEstadisticas = async (req, res) => {
       totalOrdenes,
       ordenesPendientes,
       ordenesAprobadas,
+      ordenesEnProceso,
       ordenesRechazadas,
       ordenesCompletadas,
       montoTotal,
@@ -976,6 +977,7 @@ const ObtenerEstadisticas = async (req, res) => {
       prisma.ordenCompra.count(),
       prisma.ordenCompra.count({ where: { estado: "pendiente" } }),
       prisma.ordenCompra.count({ where: { estado: "aprobada" } }),
+      prisma.ordenCompra.count({ where: { estado: "en_proceso" } }),
       prisma.ordenCompra.count({ where: { estado: "rechazada" } }),
       prisma.ordenCompra.count({ where: { estado: "completada" } }),
       prisma.ordenCompra.aggregate({
@@ -984,7 +986,7 @@ const ObtenerEstadisticas = async (req, res) => {
         },
         where: {
           estado: {
-            in: ["aprobada", "completada"],
+            in: ["aprobada", "en_proceso", "completada"],
           },
         },
       }),
@@ -994,6 +996,7 @@ const ObtenerEstadisticas = async (req, res) => {
       totalOrdenes,
       ordenesPendientes,
       ordenesAprobadas,
+      ordenesEnProceso,
       ordenesRechazadas,
       ordenesCompletadas,
       montoTotal: montoTotal._sum.total || 0,
