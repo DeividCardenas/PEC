@@ -22,6 +22,9 @@ const EmpresaDetalles = lazy(() => import("./pages/Empresa/EmpresaDetalles"));
 // Lazy loading para módulo Proveedores
 const Proveedores = lazy(() => import("./pages/Proveedores/Proveedores"));
 
+// Lazy loading para módulo Órdenes de Compra
+const OrdenesCompra = lazy(() => import("./pages/Ordenes/OrdenesCompra"));
+
 // Lazy loading para módulo EPS
 const EPSPage = lazy(() => import("./pages/EPS/EPS"));
 
@@ -89,6 +92,14 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <Proveedores />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Ordenes"
+              element={
+                <ProtectedRoute>
+                  <OrdenesCompra />
                 </ProtectedRoute>
               }
             />
