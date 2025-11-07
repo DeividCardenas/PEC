@@ -41,6 +41,40 @@ const generarNumeroOrden = async () => {
 };
 
 /**
+ * Registrar cambio en el historial de una orden (RF004)
+ * Función helper para rastrear todos los cambios de estado
+ */
+const registrarCambioHistorial = async (
+  tx,
+  id_orden_compra,
+  estado_anterior,
+  estado_nuevo,
+  id_usuario,
+  tipo_cambio = "estado",
+  comentario = null,
+  campos_modificados = null
+) => {
+  try {
+    await tx.historialOrdenCompra.create({
+      data: {
+        id_orden_compra: parseInt(id_orden_compra),
+        estado_anterior,
+        estado_nuevo,
+        tipo_cambio,
+        id_usuario: id_usuario || null,
+        comentario,
+        campos_modificados: campos_modificados
+          ? JSON.stringify(campos_modificados)
+          : null,
+      },
+    });
+  } catch (error) {
+    console.error("Error al registrar historial:", error);
+    // No lanzar error para no interrumpir la operación principal
+  }
+};
+
+/**
  * Listar órdenes de compra con paginación y filtros
  * GET /ordenes-compra
  * Query params: page, limit, search, estado, id_proveedor, fecha_desde, fecha_hasta
@@ -319,39 +353,54 @@ const CrearOrden = async (req, res) => {
     // Generar número de orden
     const numero_orden = await generarNumeroOrden();
 
-    // Crear la orden con sus detalles
-    const orden = await prisma.ordenCompra.create({
-      data: {
-        numero_orden,
-        id_proveedor: parseInt(id_proveedor),
-        id_creado_por: parseInt(id_creado_por),
-        fecha_entrega_estimada: fecha_entrega_estimada
-          ? new Date(fecha_entrega_estimada)
-          : null,
-        subtotal,
-        impuestos,
-        total,
-        notas: notas || null,
-        estado: "pendiente",
-        detalles: {
-          create: detallesConSubtotal,
-        },
-      },
-      include: {
-        proveedor: true,
-        creado_por: {
-          select: {
-            id_usuario: true,
-            username: true,
-            email: true,
+    // Crear la orden con sus detalles y registrar en historial (RF004)
+    const orden = await prisma.$transaction(async (tx) => {
+      const nuevaOrden = await tx.ordenCompra.create({
+        data: {
+          numero_orden,
+          id_proveedor: parseInt(id_proveedor),
+          id_creado_por: parseInt(id_creado_por),
+          fecha_entrega_estimada: fecha_entrega_estimada
+            ? new Date(fecha_entrega_estimada)
+            : null,
+          subtotal,
+          impuestos,
+          total,
+          notas: notas || null,
+          estado: "pendiente",
+          detalles: {
+            create: detallesConSubtotal,
           },
         },
-        detalles: {
-          include: {
-            producto: true,
+        include: {
+          proveedor: true,
+          creado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          detalles: {
+            include: {
+              producto: true,
+            },
           },
         },
-      },
+      });
+
+      // Registrar en historial (RF004)
+      await registrarCambioHistorial(
+        tx,
+        nuevaOrden.id_orden_compra,
+        null, // No hay estado anterior
+        "pendiente",
+        parseInt(id_creado_por),
+        "estado",
+        "Orden de compra creada"
+      );
+
+      return nuevaOrden;
     });
 
     return sendSuccess(
@@ -601,36 +650,52 @@ const AprobarOrden = async (req, res) => {
       );
     }
 
-    const ordenAprobada = await prisma.ordenCompra.update({
-      where: { id_orden_compra: parseInt(id_orden_compra) },
-      data: {
-        estado: "aprobada",
-        id_aprobado_por: parseInt(id_usuario),
-        fecha_aprobacion: new Date(),
-        motivo_rechazo: null,
-      },
-      include: {
-        proveedor: true,
-        creado_por: {
-          select: {
-            id_usuario: true,
-            username: true,
-            email: true,
+    // Aprobar orden y registrar en historial (RF004)
+    const ordenAprobada = await prisma.$transaction(async (tx) => {
+      const ordenActualizada = await tx.ordenCompra.update({
+        where: { id_orden_compra: parseInt(id_orden_compra) },
+        data: {
+          estado: "aprobada",
+          id_aprobado_por: parseInt(id_usuario),
+          fecha_aprobacion: new Date(),
+          motivo_rechazo: null,
+        },
+        include: {
+          proveedor: true,
+          creado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          aprobado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          detalles: {
+            include: {
+              producto: true,
+            },
           },
         },
-        aprobado_por: {
-          select: {
-            id_usuario: true,
-            username: true,
-            email: true,
-          },
-        },
-        detalles: {
-          include: {
-            producto: true,
-          },
-        },
-      },
+      });
+
+      // Registrar en historial (RF004)
+      await registrarCambioHistorial(
+        tx,
+        parseInt(id_orden_compra),
+        "pendiente",
+        "aprobada",
+        parseInt(id_usuario),
+        "estado",
+        "Orden de compra aprobada"
+      );
+
+      return ordenActualizada;
     });
 
     return sendSuccess(
@@ -686,36 +751,52 @@ const RechazarOrden = async (req, res) => {
       );
     }
 
-    const ordenRechazada = await prisma.ordenCompra.update({
-      where: { id_orden_compra: parseInt(id_orden_compra) },
-      data: {
-        estado: "rechazada",
-        id_aprobado_por: parseInt(id_usuario),
-        fecha_aprobacion: new Date(),
-        motivo_rechazo: motivo_rechazo.trim(),
-      },
-      include: {
-        proveedor: true,
-        creado_por: {
-          select: {
-            id_usuario: true,
-            username: true,
-            email: true,
+    // Rechazar orden y registrar en historial (RF004)
+    const ordenRechazada = await prisma.$transaction(async (tx) => {
+      const ordenActualizada = await tx.ordenCompra.update({
+        where: { id_orden_compra: parseInt(id_orden_compra) },
+        data: {
+          estado: "rechazada",
+          id_aprobado_por: parseInt(id_usuario),
+          fecha_aprobacion: new Date(),
+          motivo_rechazo: motivo_rechazo.trim(),
+        },
+        include: {
+          proveedor: true,
+          creado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          aprobado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          detalles: {
+            include: {
+              producto: true,
+            },
           },
         },
-        aprobado_por: {
-          select: {
-            id_usuario: true,
-            username: true,
-            email: true,
-          },
-        },
-        detalles: {
-          include: {
-            producto: true,
-          },
-        },
-      },
+      });
+
+      // Registrar en historial (RF004)
+      await registrarCambioHistorial(
+        tx,
+        parseInt(id_orden_compra),
+        "pendiente",
+        "rechazada",
+        parseInt(id_usuario),
+        "estado",
+        `Orden rechazada: ${motivo_rechazo.trim()}`
+      );
+
+      return ordenActualizada;
     });
 
     return sendSuccess(
@@ -812,7 +893,18 @@ const CompletarOrden = async (req, res) => {
         });
       }
 
-      // 3. Retornar orden completa con relaciones
+      // 3. Registrar en historial (RF004)
+      await registrarCambioHistorial(
+        tx,
+        parseInt(id_orden_compra),
+        "aprobada",
+        "completada",
+        id_usuario || null,
+        "estado",
+        "Orden completada e inventario actualizado"
+      );
+
+      // 4. Retornar orden completa con relaciones
       return await tx.ordenCompra.findUnique({
         where: { id_orden_compra: parseInt(id_orden_compra) },
         include: {
@@ -914,6 +1006,157 @@ const ObtenerEstadisticas = async (req, res) => {
   }
 };
 
+/**
+ * Marcar una orden como "en_proceso" (RF004)
+ * PUT /ordenes-compra/:id_orden_compra/en-proceso
+ * Body: { id_usuario }
+ */
+const MarcarEnProceso = async (req, res) => {
+  try {
+    const { id_orden_compra } = req.params;
+    const { id_usuario } = req.body;
+
+    if (!isValidId(id_orden_compra)) {
+      return sendError(res, "ID de orden inválido", 400);
+    }
+
+    if (!id_usuario) {
+      return sendError(res, "El ID del usuario es requerido", 400);
+    }
+
+    const orden = await prisma.ordenCompra.findUnique({
+      where: { id_orden_compra: parseInt(id_orden_compra) },
+    });
+
+    if (!orden) {
+      return sendError(res, "Orden de compra no encontrada", 404);
+    }
+
+    if (orden.estado !== "aprobada") {
+      return sendError(
+        res,
+        `Solo se pueden marcar como "en proceso" órdenes aprobadas. Estado actual: ${orden.estado}`,
+        400
+      );
+    }
+
+    // Marcar como en proceso y registrar en historial (RF004)
+    const ordenEnProceso = await prisma.$transaction(async (tx) => {
+      const ordenActualizada = await tx.ordenCompra.update({
+        where: { id_orden_compra: parseInt(id_orden_compra) },
+        data: {
+          estado: "en_proceso",
+        },
+        include: {
+          proveedor: true,
+          creado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          aprobado_por: {
+            select: {
+              id_usuario: true,
+              username: true,
+              email: true,
+            },
+          },
+          detalles: {
+            include: {
+              producto: true,
+            },
+          },
+        },
+      });
+
+      // Registrar en historial (RF004)
+      await registrarCambioHistorial(
+        tx,
+        parseInt(id_orden_compra),
+        "aprobada",
+        "en_proceso",
+        parseInt(id_usuario),
+        "estado",
+        "Orden marcada como en proceso"
+      );
+
+      return ordenActualizada;
+    });
+
+    return sendSuccess(
+      res,
+      { orden: ordenEnProceso },
+      200,
+      "Orden marcada como en proceso exitosamente"
+    );
+  } catch (error) {
+    console.error("Error al marcar orden en proceso:", error);
+    if (error.code) {
+      return handlePrismaError(res, error);
+    }
+    return sendError(res, "Error al marcar la orden en proceso", 500);
+  }
+};
+
+/**
+ * Obtener historial de cambios de una orden (RF004)
+ * GET /ordenes-compra/:id_orden_compra/historial
+ */
+const ObtenerHistorial = async (req, res) => {
+  try {
+    const { id_orden_compra } = req.params;
+
+    if (!isValidId(id_orden_compra)) {
+      return sendError(res, "ID de orden inválido", 400);
+    }
+
+    // Verificar que la orden existe
+    const orden = await prisma.ordenCompra.findUnique({
+      where: { id_orden_compra: parseInt(id_orden_compra) },
+      select: {
+        id_orden_compra: true,
+        numero_orden: true,
+        estado: true,
+      },
+    });
+
+    if (!orden) {
+      return sendError(res, "Orden de compra no encontrada", 404);
+    }
+
+    // Obtener historial completo
+    const historial = await prisma.historialOrdenCompra.findMany({
+      where: { id_orden_compra: parseInt(id_orden_compra) },
+      include: {
+        usuario: {
+          select: {
+            id_usuario: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        creado_en: "asc", // Orden cronológico
+      },
+    });
+
+    return sendSuccess(res, {
+      orden,
+      historial,
+      total_cambios: historial.length,
+    });
+  } catch (error) {
+    console.error("Error al obtener historial:", error);
+    if (error.code) {
+      return handlePrismaError(res, error);
+    }
+    return sendError(res, "Error al obtener el historial", 500);
+  }
+};
+
 module.exports = {
   MostrarOrdenes,
   MostrarOrden,
@@ -924,4 +1167,6 @@ module.exports = {
   RechazarOrden,
   CompletarOrden,
   ObtenerEstadisticas,
+  MarcarEnProceso,
+  ObtenerHistorial,
 };

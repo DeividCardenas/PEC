@@ -301,3 +301,67 @@ export const fetchEstadisticas = async (): Promise<EstadisticasResponse> => {
     throw error;
   }
 };
+
+/**
+ * Marcar una orden como "en_proceso" (RF004)
+ */
+export const marcarEnProceso = async (
+  id_orden_compra: number,
+  id_usuario: number
+): Promise<{ msg: string; data: { orden: OrdenCompra } }> => {
+  setBaseURL("ordenes-compra");
+  try {
+    const response = await axiosInstance.put(
+      `/${id_orden_compra}/en-proceso`,
+      { id_usuario }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al marcar orden en proceso:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener historial de cambios de una orden (RF004)
+ */
+export interface HistorialCambio {
+  id_historial: number;
+  id_orden_compra: number;
+  estado_anterior: string | null;
+  estado_nuevo: string;
+  tipo_cambio: string;
+  id_usuario: number | null;
+  comentario: string | null;
+  campos_modificados: string | null;
+  usuario?: Usuario | null;
+  creado_en: string;
+}
+
+export interface HistorialResponse {
+  msg: string;
+  data: {
+    orden: {
+      id_orden_compra: number;
+      numero_orden: string;
+      estado: string;
+    };
+    historial: HistorialCambio[];
+    total_cambios: number;
+  };
+}
+
+export const fetchHistorial = async (
+  id_orden_compra: number
+): Promise<HistorialResponse> => {
+  setBaseURL("ordenes-compra");
+  try {
+    const response = await axiosInstance.get<HistorialResponse>(
+      `/${id_orden_compra}/historial`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener historial:", error);
+    throw error;
+  }
+};

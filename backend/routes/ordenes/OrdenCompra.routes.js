@@ -11,6 +11,8 @@ const {
   RechazarOrden,
   CompletarOrden,
   ObtenerEstadisticas,
+  MarcarEnProceso,
+  ObtenerHistorial,
 } = require("../../controllers/ordenes/OrdenCompra.Controller");
 
 // Rutas de órdenes de compra
@@ -21,9 +23,13 @@ router.post("/", CrearOrden);
 router.put("/:id_orden_compra", EditarOrden);
 router.delete("/:id_orden_compra", EliminarOrden);
 
-// Rutas de aprobación/rechazo
+// Rutas de cambios de estado
 router.put("/:id_orden_compra/aprobar", AprobarOrden);
 router.put("/:id_orden_compra/rechazar", RechazarOrden);
+router.put("/:id_orden_compra/en-proceso", MarcarEnProceso); // RF004
 router.put("/:id_orden_compra/completar", CompletarOrden);
+
+// Rutas de seguimiento (RF004)
+router.get("/:id_orden_compra/historial", ObtenerHistorial);
 
 module.exports = router;
