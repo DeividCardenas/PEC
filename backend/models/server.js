@@ -103,6 +103,9 @@ class Server {
     // Rutas de inventario (RF003)
     this.app.use(this.path + "inventario", require("../routes/inventario/Inventario.routes"));
 
+    // Rutas de reportes (RF005)
+    this.app.use(this.path + "reportes", require("../routes/reportes/Reportes.routes"));
+
     // Rutas para EPS y tarifarios
     this.app.use(this.path + "eps", require("../routes/eps/EPS.routes"));
     this.app.use(this.path + "tarifario", require("../routes/eps/Tarifario.routes"));
