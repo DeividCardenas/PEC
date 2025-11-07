@@ -1,6 +1,8 @@
 // Importación de módulos necesarios
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 // Clase principal del servidor
 class Server {
@@ -24,8 +26,51 @@ class Server {
    * Configura los middlewares globales del servidor.
    */
   middlewares() {
-    this.app.use(cors());           // Habilita CORS para permitir solicitudes de otros dominios
-    this.app.use(express.json());   // Permite recibir y procesar JSON en las solicitudes
+    // ===== SEGURIDAD =====
+
+    // Helmet: Configura headers HTTP seguros
+    this.app.use(helmet({
+      contentSecurityPolicy: false, // Desactivado para permitir carga de recursos externos si es necesario
+      crossOriginEmbedderPolicy: false,
+    }));
+
+    // CORS: Configuración más restrictiva
+    const corsOptions = {
+      origin: process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',')
+        : '*', // En desarrollo permite todas las origins, en producción usar lista específica
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      optionsSuccessStatus: 200
+    };
+    this.app.use(cors(corsOptions));
+
+    // Rate Limiting Global: Limita requests generales
+    const generalLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutos
+      max: 1000, // Límite de 1000 requests por ventana por IP
+      message: { msg: 'Demasiadas peticiones desde esta IP, intente de nuevo más tarde.' },
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
+    this.app.use(generalLimiter);
+
+    // Rate Limiting para Autenticación: Más restrictivo
+    const authLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutos
+      max: 10, // Límite de 10 intentos de login por IP en 15 min
+      message: { msg: 'Demasiados intentos de inicio de sesión, intente de nuevo en 15 minutos.' },
+      skipSuccessfulRequests: true, // No contar requests exitosos
+    });
+
+    // Aplicar rate limiting específico a rutas de autenticación
+    this.app.use(this.path + "usuario/login", authLimiter);
+    this.app.use(this.path + "token", authLimiter);
+
+    // ===== PARSERS =====
+    this.app.use(express.json()); // Permite recibir y procesar JSON en las solicitudes
+    this.app.use(express.urlencoded({ extended: true })); // Permite form data
   }
 
   /**
@@ -66,9 +111,32 @@ class Server {
    * Middleware de manejo global de errores.
    */
   errorHandler() {
+    // Middleware para rutas no encontradas (404)
+    this.app.use((req, res, next) => {
+      res.status(404).json({
+        msg: "Ruta no encontrada",
+        path: req.originalUrl
+      });
+    });
+
+    // Middleware global de manejo de errores
     this.app.use((err, req, res, next) => {
-      console.error(err); // Muestra el error en la consola para depuración
-      res.status(500).json({ msg: "Ocurrió un error en el servidor." }); // Respuesta genérica al cliente
+      // Log del error en servidor (solo en desarrollo mostrar stack completo)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error completo:', err);
+      } else {
+        console.error('Error:', err.message);
+      }
+
+      // Status code del error o 500 por defecto
+      const statusCode = err.statusCode || 500;
+
+      // Respuesta al cliente
+      res.status(statusCode).json({
+        msg: err.message || "Ocurrió un error en el servidor.",
+        // Solo en desarrollo enviar stack trace
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+      });
     });
   }
 
