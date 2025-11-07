@@ -27,6 +27,7 @@ const validarErrores = (req, res, next) => {
 /**
  * Validación para la creación de un nuevo producto.
  * Asegura que los campos necesarios estén presentes y sean válidos.
+ * RF003: Incluye validación de campos de inventario.
  */
 const validarProducto = [
     body("cum").notEmpty().withMessage("El CUM es obligatorio"),
@@ -40,12 +41,17 @@ const validarProducto = [
     body("iva").isFloat({ min: 0 }).withMessage("El IVA debe ser un número positivo"),
     body("regulacion").optional().isString().withMessage("La regulación debe ser una cadena de texto"),
     body("codigo_barras").notEmpty().withMessage("El código de barras es obligatorio"),
+    body("stock_actual").optional().isInt({ min: 0 }).withMessage("El stock actual debe ser un número entero positivo"),
+    body("stock_minimo").optional().isInt({ min: 0 }).withMessage("El stock mínimo debe ser un número entero positivo"),
+    body("stock_maximo").optional().isInt({ min: 0 }).withMessage("El stock máximo debe ser un número entero positivo"),
+    body("unidad_medida").optional().isString().withMessage("La unidad de medida debe ser una cadena de texto"),
     validarErrores
 ];
 
 /**
  * Validación para la edición de un producto.
  * Los campos son opcionales, pero si se proporcionan, deben ser válidos.
+ * RF003: Incluye validación de campos de inventario.
  */
 const validarEdicionProducto = [
     param("id_producto").isInt().withMessage("El ID del producto debe ser un número entero"),
@@ -60,6 +66,10 @@ const validarEdicionProducto = [
     body("iva").optional().isFloat({ min: 0 }).withMessage("El IVA debe ser un número positivo"),
     body("regulacion").optional().isString().withMessage("La regulación debe ser una cadena de texto"),
     body("codigo_barras").optional().notEmpty().withMessage("El código de barras no puede estar vacío"),
+    body("stock_actual").optional().isInt({ min: 0 }).withMessage("El stock actual debe ser un número entero positivo"),
+    body("stock_minimo").optional().isInt({ min: 0 }).withMessage("El stock mínimo debe ser un número entero positivo"),
+    body("stock_maximo").optional().isInt({ min: 0 }).withMessage("El stock máximo debe ser un número entero positivo"),
+    body("unidad_medida").optional().isString().withMessage("La unidad de medida debe ser una cadena de texto"),
     validarErrores
 ];
 
@@ -108,11 +118,12 @@ const MostrarProductos = [
                 condiciones.regulacion = { contains: regulacion};
             }
 
-            // Definir campos base obligatorios
+            // Definir campos base obligatorios (incluye campos de inventario RF003)
             const selectFields = {
-                id_producto: true, cum: true, descripcion: true, concentracion: true, 
-                id_laboratorio: true, precio_unidad: true, precio_presentacion: true, 
-                iva: true, createdAt: true, updatedAt: true, 
+                id_producto: true, cum: true, descripcion: true, concentracion: true,
+                id_laboratorio: true, precio_unidad: true, precio_presentacion: true,
+                iva: true, stock_actual: true, stock_minimo: true, stock_maximo: true,
+                unidad_medida: true, createdAt: true, updatedAt: true,
                 laboratorio: { select: { nombre: true } },
             };
 

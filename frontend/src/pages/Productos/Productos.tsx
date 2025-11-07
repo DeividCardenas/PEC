@@ -184,6 +184,10 @@ const Productos = () => {
                 <th className="p-2">Laboratorio</th>
                 <th className="p-2">Precio Unidad</th>
                 <th className="p-2">Precio Presentacion</th>
+                {/* RF003: Columnas de inventario */}
+                <th className="p-2">Stock Actual</th>
+                <th className="p-2">Stock Mínimo</th>
+                <th className="p-2">Estado Stock</th>
                 {/* Se renderizan las columnas adicionales de forma dinámica */}
                 {selectedExtraFields.includes("registro_sanitario") && <th className="p-2">Registro Sanitario</th>}
                 {selectedExtraFields.includes("regulacion") && <th className="p-2">Regulación</th>}
@@ -213,6 +217,36 @@ const Productos = () => {
                         currency: "COP",
                       }).format(Number(producto.precio_presentacion))}
                     </td>
+                    {/* RF003: Columnas de inventario */}
+                    <td className="p-2 text-center">
+                      <span className={`px-2 py-1 rounded ${
+                        (producto.stock_actual ?? 0) === 0
+                          ? 'bg-red-100 text-red-700'
+                          : (producto.stock_actual ?? 0) <= (producto.stock_minimo ?? 0)
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {producto.stock_actual ?? 0} {producto.unidad_medida ?? 'unidad'}
+                      </span>
+                    </td>
+                    <td className="p-2 text-center">
+                      {producto.stock_minimo ?? 0} {producto.unidad_medida ?? 'unidad'}
+                    </td>
+                    <td className="p-2 text-center">
+                      {(producto.stock_actual ?? 0) === 0 ? (
+                        <span className="px-2 py-1 bg-red-500 text-white text-xs rounded">
+                          Sin Stock
+                        </span>
+                      ) : (producto.stock_actual ?? 0) <= (producto.stock_minimo ?? 0) ? (
+                        <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded">
+                          Stock Bajo
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-green-500 text-white text-xs rounded">
+                          Normal
+                        </span>
+                      )}
+                    </td>
                     {selectedExtraFields.includes("registro_sanitario") && (
                       <td className="p-2 text-center">{producto.registro_sanitario ?? "-"}</td>
                     )}
@@ -226,7 +260,7 @@ const Productos = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6 + selectedExtraFields.length} className="text-center py-4 text-black">
+                  <td colSpan={9 + selectedExtraFields.length} className="text-center py-4 text-black">
                     No hay productos disponibles
                   </td>
                 </tr>
