@@ -3,11 +3,45 @@ import axios from 'axios';
 // Crea una instancia de Axios con la base URL común
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL, // Usa la variable de entorno
-  timeout: 10000, 
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Interceptor de request para añadir token de autenticación
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor de response para manejar errores de autenticación
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si el token ha expirado o no es válido (401)
+    if (error.response?.status === 401) {
+      // Limpiar datos de autenticación
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tarifarios');
+
+      // Redirigir al login solo si no estamos ya en la página de login
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Función para actualizar dinámicamente la baseURL
 export const setBaseURL = (service: string) => {

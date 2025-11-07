@@ -48,18 +48,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Guard: only Administrador can access this page
-  React.useEffect(() => {
-    if (!user || !user.id) {
-      // not logged in -> redirect to login
-      navigate('/');
-      return;
-    }
-    if (user.rol !== 'Administrador') {
-      // non-admin -> redirect to home/menu
-      navigate('/Menu');
-    }
-  }, [user]);
+  // Nota: La protección de autenticación y rol ahora está manejada por ProtectedRoute en App.tsx
 
   const fetchData = async (type: string) => {
     try {
