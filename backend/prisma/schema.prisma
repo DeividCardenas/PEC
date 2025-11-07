@@ -19,6 +19,9 @@ model Usuario {
   id_rol     Int    @map("rol_id")                                   // ID del rol asociado
   rol        Rol    @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade) // Relación con el rol
 
+  ordenes_creadas  OrdenCompra[] @relation("OrdenesCreadas")        // Órdenes de compra creadas por el usuario
+  ordenes_aprobadas OrdenCompra[] @relation("OrdenesAprobadas")     // Órdenes de compra aprobadas por el usuario
+
   createdAt DateTime @default(now()) @map("fecha_creacion")         // Fecha de creación
   updatedAt DateTime @updatedAt @map("fecha_actualizacion")         // Fecha de última actualización
 }
@@ -162,6 +165,7 @@ model Producto {
 
   laboratorio         Laboratorio           @relation(fields: [id_laboratorio], references: [id_laboratorio])
   tarifarios          TarifarioOnProducto[]
+  detalles_orden      DetalleOrdenCompra[]                                     // Detalles de órdenes de compra
 
   createdAt          DateTime @default(now()) @map("fecha_creacion")
   updatedAt          DateTime @updatedAt @map("fecha_actualizacion")
@@ -183,6 +187,7 @@ model Proveedor {
   activo       Boolean        @default(true)                                 // Estado del proveedor
   notas        String?        @db.Text                                       // Notas adicionales
   transacciones Transaccion[]                                                // Historial de transacciones
+  ordenes_compra OrdenCompra[]                                               // Órdenes de compra del proveedor
 
   creado_en    DateTime @default(now()) @map("creado_en")
   actualizado_en DateTime @updatedAt @map("actualizado_en")
@@ -210,4 +215,50 @@ model Transaccion {
   actualizado_en DateTime @updatedAt @map("actualizado_en")
 
   @@map("transacciones")
+}
+
+/// Órdenes de compra a proveedores
+model OrdenCompra {
+  id_orden_compra       Int      @id @default(autoincrement()) @map("id_orden_compra")
+  numero_orden          String   @unique @map("numero_orden")                   // Número de orden único (ej: OC-2024-0001)
+  id_proveedor          Int      @map("proveedor_id")
+  id_creado_por         Int      @map("creado_por")                            // Usuario que creó la orden
+  id_aprobado_por       Int?     @map("aprobado_por")                          // Usuario que aprobó/rechazó la orden
+  fecha_orden           DateTime @default(now()) @map("fecha_orden")           // Fecha de creación
+  fecha_entrega_estimada DateTime? @map("fecha_entrega_estimada")              // Fecha estimada de entrega
+  fecha_aprobacion      DateTime? @map("fecha_aprobacion")                     // Fecha de aprobación/rechazo
+  estado                String   @default("pendiente")                         // "pendiente", "aprobada", "rechazada", "completada", "cancelada"
+  subtotal              Decimal  @default(0)                                   // Subtotal sin impuestos
+  impuestos             Decimal  @default(0)                                   // Total de impuestos
+  total                 Decimal  @default(0)                                   // Total de la orden
+  notas                 String?  @db.Text                                      // Notas generales
+  motivo_rechazo        String?  @db.Text                                      // Motivo de rechazo (si aplica)
+
+  proveedor             Proveedor @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: Cascade)
+  creado_por            Usuario   @relation("OrdenesCreadas", fields: [id_creado_por], references: [id_usuario])
+  aprobado_por          Usuario?  @relation("OrdenesAprobadas", fields: [id_aprobado_por], references: [id_usuario])
+  detalles              DetalleOrdenCompra[]                                   // Detalles de productos
+
+  creado_en             DateTime @default(now()) @map("creado_en")
+  actualizado_en        DateTime @updatedAt @map("actualizado_en")
+
+  @@map("ordenes_compra")
+}
+
+/// Detalle de productos en cada orden de compra
+model DetalleOrdenCompra {
+  id_detalle       Int      @id @default(autoincrement()) @map("id_detalle")
+  id_orden_compra  Int      @map("orden_compra_id")
+  id_producto      Int      @map("producto_id")
+  cantidad         Int                                                          // Cantidad solicitada
+  precio_unitario  Decimal                                                      // Precio unitario acordado
+  subtotal         Decimal                                                      // Subtotal (cantidad * precio_unitario)
+
+  orden_compra     OrdenCompra @relation(fields: [id_orden_compra], references: [id_orden_compra], onDelete: Cascade)
+  producto         Producto    @relation(fields: [id_producto], references: [id_producto])
+
+  creado_en        DateTime @default(now()) @map("creado_en")
+  actualizado_en   DateTime @updatedAt @map("actualizado_en")
+
+  @@map("detalles_orden_compra")
 }

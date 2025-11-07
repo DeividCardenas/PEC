@@ -97,6 +97,9 @@ class Server {
   // Rutas de proveedores
   this.app.use(this.path + "proveedores", require("../routes/proveedores/Proveedor.routes"));
 
+    // Rutas de órdenes de compra
+    this.app.use(this.path + "ordenes-compra", require("../routes/ordenes/OrdenCompra.routes"));
+
     // Rutas para EPS y tarifarios
     this.app.use(this.path + "eps", require("../routes/eps/EPS.routes"));
     this.app.use(this.path + "tarifario", require("../routes/eps/Tarifario.routes"));
