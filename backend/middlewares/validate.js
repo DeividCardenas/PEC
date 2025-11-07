@@ -31,33 +31,35 @@ const Decrypt = (data) => {
 /**
  * Función de prueba para verificar el correcto funcionamiento de Encrypt y Decrypt.
  * Muestra el flujo completo: texto original → encriptado → desencriptado.
+ *
+ * NOTA: Esta función está comentada en producción por seguridad.
+ * Para testear, ejecutar manualmente en entorno de desarrollo.
+ * NUNCA imprimir la clave secreta en logs.
  */
 const TestEncryption = () => {
   try {
-    console.log("Verificando el funcionamiento de encriptado/desencriptado...");
-    console.log("Clave AES:", process.env.AUTH_AES_SECRET_KEY);
-
-    const testData = "texto de prueba"; // Datos de prueba
-    console.log("Texto original:", testData);
-
+    const testData = "texto de prueba";
     const encrypted = Encrypt(testData);
-    console.log("Texto encriptado:", encrypted);
-
     const decrypted = Decrypt(encrypted);
-    console.log("Texto desencriptado:", decrypted);
 
     if (testData === decrypted) {
-      console.log("Encriptado y desencriptado funcionando correctamente.");
+      // Solo en modo desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        console.log("✓ Encriptado y desencriptado funcionando correctamente.");
+      }
+      return true;
     } else {
-      console.error("Error: el texto desencriptado no coincide con el original.");
+      console.error("✗ Error: el texto desencriptado no coincide con el original.");
+      return false;
     }
   } catch (error) {
-    console.error("Error al verificar el funcionamiento:", error.message);
+    console.error("✗ Error al verificar el funcionamiento:", error.message);
+    return false;
   }
 };
 
-// Ejecuta automáticamente una prueba cuando se ejecuta el archivo directamente
-TestEncryption();
+// COMENTADO: No ejecutar automáticamente en producción
+// TestEncryption();
 
 // Exporta las funciones de encriptación y desencriptación para uso externo
 module.exports = {
