@@ -314,3 +314,40 @@ model HistorialOrdenCompra {
 
   @@map("historial_ordenes_compra")
 }
+
+/// Pacientes/Clientes del sistema para entregas (RF007)
+model Paciente {
+  id_paciente       Int      @id @default(autoincrement()) @map("id_paciente")        // ID único del paciente
+  tipo_identificacion String @db.VarChar(20)                                          // Tipo: CC, TI, CE, Pasaporte
+  numero_identificacion String @unique                                                 // Número de identificación único
+  nombres           String   @db.VarChar(100)                                         // Nombres del paciente
+  apellidos         String   @db.VarChar(100)                                         // Apellidos del paciente
+  fecha_nacimiento  DateTime?                                                          // Fecha de nacimiento
+  genero            String?  @db.VarChar(20)                                          // Masculino, Femenino, Otro
+  telefono_principal String  @db.VarChar(20)                                          // Teléfono principal
+  telefono_secundario String? @db.VarChar(20)                                         // Teléfono secundario (opcional)
+  email             String?  @db.VarChar(100)                                         // Email (opcional)
+
+  // Dirección
+  direccion         String   @db.VarChar(255)                                         // Dirección completa
+  ciudad            String   @db.VarChar(100)                                         // Ciudad
+  departamento      String   @db.VarChar(100)                                         // Departamento/Estado
+  codigo_postal     String?  @db.VarChar(20)                                          // Código postal (opcional)
+  barrio            String?  @db.VarChar(100)                                         // Barrio o zona
+
+  // Información adicional
+  eps               String?  @db.VarChar(100)                                         // EPS del paciente
+  tipo_afiliacion   String?  @db.VarChar(50)                                          // Contributivo, Subsidiado, Particular
+  observaciones     String?  @db.Text                                                 // Observaciones o notas adicionales
+  activo            Boolean  @default(true)                                           // Si el paciente está activo
+
+  // Relaciones futuras (para entregas)
+  // entregas          Entrega[]                                                      // Entregas asociadas al paciente
+
+  createdAt         DateTime @default(now()) @map("fecha_creacion")
+  updatedAt         DateTime @updatedAt @map("fecha_actualizacion")
+
+  @@map("pacientes")
+  @@index([numero_identificacion])
+  @@index([nombres, apellidos])
+}

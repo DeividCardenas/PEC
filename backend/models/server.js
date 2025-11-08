@@ -106,6 +106,9 @@ class Server {
     // Rutas de reportes (RF005)
     this.app.use(this.path + "reportes", require("../routes/reportes/Reportes.routes"));
 
+    // Rutas de pacientes (RF007)
+    this.app.use(this.path + "pacientes", require("../routes/pacientes/Paciente.routes"));
+
     // Rutas para EPS y tarifarios
     this.app.use(this.path + "eps", require("../routes/eps/EPS.routes"));
     this.app.use(this.path + "tarifario", require("../routes/eps/Tarifario.routes"));
