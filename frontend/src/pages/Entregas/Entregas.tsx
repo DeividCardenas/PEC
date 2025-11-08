@@ -20,7 +20,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { usePermissions, PermissionGuard } from "../../hooks/usePermissions";
+import { usePermissions } from "../../hooks/usePermissions";
 import {
   fetchEntregas,
   fetchEntrega,
@@ -428,32 +428,28 @@ const Entregas: React.FC = () => {
             title="Ver detalles"
           />
           {row.estado !== "Cancelado" && row.estado !== "Entregado" && (
-            <PermissionGuard permission="despachar_entregas">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setSelectedEntrega(row);
-                  setShowEstadoModal(true);
-                }}
-                icon={<Repeat size={16} className="text-purple-600" />}
-                title="Cambiar estado"
-              />
-            </PermissionGuard>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setSelectedEntrega(row);
+                setShowEstadoModal(true);
+              }}
+              icon={<Repeat size={16} className="text-purple-600" />}
+              title="Cambiar estado"
+            />
           )}
           {row.estado !== "Cancelado" && row.estado !== "Entregado" && (
-            <PermissionGuard permission="cancelar_entregas">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setSelectedEntrega(row);
-                  setShowCancelarModal(true);
-                }}
-                icon={<Ban size={16} className="text-red-600" />}
-                title="Cancelar entrega"
-              />
-            </PermissionGuard>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setSelectedEntrega(row);
+                setShowCancelarModal(true);
+              }}
+              icon={<Ban size={16} className="text-red-600" />}
+              title="Cancelar entrega"
+            />
           )}
         </div>
       ),
@@ -482,11 +478,9 @@ const Entregas: React.FC = () => {
                 <p className="text-gray-600 mt-1">Pedidos de entrega a pacientes con control de inventario</p>
               </div>
             </div>
-            <PermissionGuard permission="crear_entregas">
-              <Button variant="success" onClick={() => setShowCreateModal(true)} icon={<Plus size={20} />}>
-                Nueva Entrega
-              </Button>
-            </PermissionGuard>
+            <Button variant="success" onClick={() => setShowCreateModal(true)} icon={<Plus size={20} />}>
+              Nueva Entrega
+            </Button>
           </div>
         </div>
       </div>
