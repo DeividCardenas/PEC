@@ -44,12 +44,12 @@ function Table<T>({
     <div className={`overflow-x-auto rounded-xl shadow-soft ${className}`}>
       <table className={`min-w-full divide-y divide-gray-200 ${borderStyles}`}>
         {/* Header */}
-        <thead className="bg-gradient-to-r from-primary-600 to-primary-700">
+        <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
             {columns.map((column, idx) => (
               <th
                 key={`header-${column.key}-${idx}`}
-                className={`px-4 py-3 text-${column.align || 'left'} text-xs font-semibold text-white uppercase tracking-wider ${column.className || ''}`}
+                className={`px-4 py-3 text-${column.align || 'left'} text-xs font-semibold text-gray-700 uppercase tracking-wider ${column.className || ''}`}
                 style={column.width ? { width: column.width } : undefined}
               >
                 {column.title}

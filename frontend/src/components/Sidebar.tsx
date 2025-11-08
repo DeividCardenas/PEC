@@ -10,17 +10,17 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <div className="w-64 bg-gray-800 text-white h-full flex flex-col shadow-2xl">
-      <div className="p-6 border-b border-indigo-700/50">
+    <div className="w-64 bg-white border-r border-gray-200 h-full flex flex-col shadow-sm">
+      <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-indigo-600 rounded-lg">
+          <div className="p-2 bg-primary-600 rounded-lg">
             <Settings size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">
+            <h1 className="text-xl font-bold text-gray-900">
               Panel de Admin
             </h1>
-            <p className="text-xs text-indigo-300">Sistema de Gestión</p>
+            <p className="text-xs text-gray-600">Sistema de Gestión</p>
           </div>
         </div>
       </div>
@@ -31,13 +31,13 @@ const Sidebar: React.FC = () => {
             <li key={item.href}>
               <a
                 href={item.href}
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-white/10 hover:shadow-lg group"
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-gray-50 group text-gray-700"
               >
                 <item.icon
                   size={20}
-                  className="text-indigo-300 group-hover:text-white transition-colors duration-200"
+                  className="text-gray-500 group-hover:text-primary-600 transition-colors duration-200"
                 />
-                <span className="font-medium group-hover:text-white transition-colors duration-200">
+                <span className="font-medium group-hover:text-gray-900 transition-colors duration-200">
                   {item.label}
                 </span>
               </a>
@@ -46,8 +46,8 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-indigo-700/50">
-        <div className="text-xs text-indigo-400 text-center">
+      <div className="p-4 border-t border-gray-200">
+        <div className="text-xs text-gray-500 text-center">
           © 2024 Pharma Elite Care
         </div>
       </div>

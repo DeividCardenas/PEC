@@ -68,14 +68,14 @@ const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        {/* Header with gradient */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100 border-b border-primary-200">
-          <h2 id="modal-title" className="text-xl font-semibold text-primary-900">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
+          <h2 id="modal-title" className="text-xl font-semibold text-gray-900">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="text-primary-500 hover:text-primary-700 hover:bg-primary-200 rounded-lg p-1.5 transition-all duration-200 active:scale-95"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1.5 transition-all duration-200"
             aria-label="Cerrar modal"
           >
             <X size={20} />

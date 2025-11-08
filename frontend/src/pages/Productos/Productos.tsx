@@ -96,31 +96,31 @@ const Productos = () => {
   }, [fetchProductosData]);
 
   return (
-    <div className="min-h-screen bg-sky-900 flex flex-col">
-      <header className="bg-sky-800 shadow-lg p-4 flex items-center">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b border-gray-200 shadow-sm p-4 flex items-center">
         <button
           onClick={() => navigate('/Menu')}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-sky-700"
+          className="flex items-center text-gray-700 hover:text-gray-900 transition-colors px-4 py-2 rounded-lg hover:bg-gray-100"
         >
           <ArrowLeft size={24} className="mr-2" />
           <span className="font-medium">Volver al Menú</span>
         </button>
       </header>
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 max-w-7xl mx-auto w-full">
         {/* Sección de filtros principales */}
-        <div className="mb-4 flex flex-wrap gap-4 items-center">
+        <div className="mb-4 flex flex-wrap gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
           <div className="relative w-full sm:max-w-xs">
             <input
               type="text"
               placeholder="Buscar productos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-zinc-100 rounded-lg p-2 text-gray-950 w-full shadow-md pr-8 text-sm"
+              className="bg-white border border-gray-300 rounded-lg p-2.5 text-gray-900 w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 pr-8 text-sm"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-950 text-lg"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
               >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
@@ -130,7 +130,7 @@ const Productos = () => {
         <select
           value={selectedFilter}
           onChange={(e) => setSelectedFilter(e.target.value)}
-          className="bg-zinc-100 text-black rounded-md p-2 shadow-sm text-sm"
+          className="bg-white border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         >
           <option value="">Filtro</option>
           <option value="descripcion">Descripción</option>
@@ -143,7 +143,7 @@ const Productos = () => {
           <select
             value={selectedFilterRegulacion}
             onChange={(e) => setSelectedFilterRegulacion(e.target.value)}
-            className="bg-zinc-100 text-black rounded-md p-2 shadow-sm text-sm"
+            className="bg-white border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
           >
             <option value="">Filtrar por Regulación</option>
             <option value="regulados">Productos regulados</option>
@@ -154,7 +154,7 @@ const Productos = () => {
         {/* Botón para abrir el modal de selección de columnas */}
         <button
           onClick={() => setShowColumnSelector(true)}
-          className="px-4 py-2 rounded-lg bg-indigo-900 hover:bg-indigo-700 text-white shadow-md"
+          className="px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white shadow-sm transition-colors"
         >
           Seleccionar columnas
         </button>
@@ -170,34 +170,34 @@ const Productos = () => {
       {/* Tabla de productos */}
       {loading ? (
         <div className="flex justify-center items-center py-8">
-          <LoadingSpinner size="lg" color="text-white" text="Cargando productos..." />
+          <LoadingSpinner size="lg" color="text-primary-600" text="Cargando productos..." />
         </div>
       ) : (
-        <div className="overflow-x-auto shadow-lg rounded-lg">
+        <div className="overflow-x-auto shadow-sm rounded-xl border border-gray-200 bg-white">
           <table className="min-w-full text-sm">
-            <thead className="p-3 border-b text-center text-white bg-indigo-900">
+            <thead className="p-3 border-b border-gray-200 text-center bg-gray-50">
               <tr>
-                <th className="p-2">CUM</th>
-                <th className="p-2">Descripción</th>
-                {selectedExtraFields.includes("presentacion") && <th className="p-2">Presentación</th>}
-                <th className="p-2">Concentración</th>
-                <th className="p-2">Laboratorio</th>
-                <th className="p-2">Precio Unidad</th>
-                <th className="p-2">Precio Presentacion</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">CUM</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Descripción</th>
+                {selectedExtraFields.includes("presentacion") && <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Presentación</th>}
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Concentración</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Laboratorio</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Precio Unidad</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Precio Presentacion</th>
                 {/* RF003: Columnas de inventario */}
-                <th className="p-2">Stock Actual</th>
-                <th className="p-2">Stock Mínimo</th>
-                <th className="p-2">Estado Stock</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Stock Actual</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Stock Mínimo</th>
+                <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Estado Stock</th>
                 {/* Se renderizan las columnas adicionales de forma dinámica */}
-                {selectedExtraFields.includes("registro_sanitario") && <th className="p-2">Registro Sanitario</th>}
-                {selectedExtraFields.includes("regulacion") && <th className="p-2">Regulación</th>}
-                {selectedExtraFields.includes("codigo_barras") && <th className="p-2">Código de Barras</th>}
+                {selectedExtraFields.includes("registro_sanitario") && <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Registro Sanitario</th>}
+                {selectedExtraFields.includes("regulacion") && <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Regulación</th>}
+                {selectedExtraFields.includes("codigo_barras") && <th className="p-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">Código de Barras</th>}
               </tr>
             </thead>
-            <tbody className="bg-stone-200">
+            <tbody className="bg-white divide-y divide-gray-200">
               {productos.length > 0 ? (
                 productos.map((producto) => (
-                  <tr key={producto.id_producto} className="hover:bg-violet-300">
+                  <tr key={producto.id_producto} className="hover:bg-gray-50 transition-colors">
                     <td className="p-2 text-center">{producto.cum}</td>
                     <td className="p-2 text-center">{producto.descripcion}</td>
                     {selectedExtraFields.includes("presentacion") && (
@@ -260,7 +260,7 @@ const Productos = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9 + selectedExtraFields.length} className="text-center py-4 text-black">
+                  <td colSpan={9 + selectedExtraFields.length} className="text-center py-8 text-gray-500">
                     No hay productos disponibles
                   </td>
                 </tr>
@@ -294,13 +294,13 @@ const Productos = () => {
         <div className="mt-6 flex justify-end gap-4">
           <button
             onClick={handleCancelColumnSelection}
-            className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black transition-colors"
+            className="px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleApplyColumnSelection}
-            className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+            className="px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors"
           >
             Aplicar
           </button>

@@ -42,47 +42,44 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDEzNGg2MHYzMEgzNnptMzAgMzBoMzB2MzBoLTMwem0wIDBoMzB2MzBoLTMweiIvPjwvZz48L2c+PC9zdmc+')] opacity-10"></div>
-
+    <div className="flex min-h-screen bg-gray-50">
       {/* Left Section - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center text-center p-12 relative z-10">
+      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center text-center p-12 bg-white border-r border-gray-200">
         <div className="animate-fade-in">
-          <div className="mb-8 inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-sm rounded-3xl shadow-glow-primary">
+          <div className="mb-8 inline-flex items-center justify-center w-24 h-24 bg-primary-600 rounded-2xl shadow-md">
             <Hospital size={48} className="text-white" />
           </div>
-          <h1 className="text-white text-6xl font-bold mb-4 tracking-tight">
+          <h1 className="text-gray-900 text-6xl font-bold mb-4 tracking-tight">
             Pharma Elite Care
           </h1>
-          <p className="text-primary-100 text-xl max-w-md mx-auto leading-relaxed">
+          <p className="text-gray-600 text-xl max-w-md mx-auto leading-relaxed">
             Sistema integral para la gestión eficiente de compras y entregas farmacéuticas
           </p>
           <div className="mt-12 grid grid-cols-3 gap-6 max-w-lg mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold text-white mb-1">24/7</div>
-              <div className="text-primary-200 text-sm">Disponibilidad</div>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <div className="text-3xl font-bold text-gray-900 mb-1">24/7</div>
+              <div className="text-gray-600 text-sm">Disponibilidad</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold text-white mb-1">100%</div>
-              <div className="text-primary-200 text-sm">Seguro</div>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
+              <div className="text-gray-600 text-sm">Seguro</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold text-white mb-1">RF010</div>
-              <div className="text-primary-200 text-sm">Completo</div>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <div className="text-3xl font-bold text-gray-900 mb-1">RF010</div>
+              <div className="text-gray-600 text-sm">Completo</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Right Section - Form */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 md:p-12 relative z-10">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 md:p-12 bg-gray-50">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-strong p-8 md:p-10 animate-slide-up">
+          <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8 md:p-10 animate-slide-up">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex lg:hidden items-center justify-center w-16 h-16 bg-primary-100 rounded-2xl mb-4">
-                <Hospital size={32} className="text-primary-600" />
+              <div className="inline-flex lg:hidden items-center justify-center w-16 h-16 bg-primary-600 rounded-xl mb-4">
+                <Hospital size={32} className="text-white" />
               </div>
               <h2 className="text-3xl font-bold text-gray-900">Bienvenido</h2>
               <p className="text-gray-600 mt-2">Inicia sesión para continuar</p>
