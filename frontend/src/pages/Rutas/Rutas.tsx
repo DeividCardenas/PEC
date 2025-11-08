@@ -34,7 +34,7 @@ const Rutas: React.FC = () => {
   // ============================================================================
   // PERMISOS
   // ============================================================================
-  const { hasPermission } = usePermissions();
+  const { tienePermiso } = usePermissions();
 
   // ============================================================================
   // ESTADOS
@@ -343,7 +343,7 @@ const Rutas: React.FC = () => {
               Gestión de rutas optimizadas de entrega
             </p>
           </div>
-          {hasPermission("crear_rutas") && (
+          {tienePermiso("crear_rutas") && (
             <button
               onClick={handleCrearRuta}
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
@@ -716,7 +716,7 @@ const Rutas: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           {/* Ver Detalle */}
-                          {hasPermission("ver_rutas") && (
+                          {tienePermiso("ver_rutas") && (
                             <button
                               onClick={() => cargarDetalleRuta(ruta.id_ruta)}
                               className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
@@ -745,7 +745,7 @@ const Rutas: React.FC = () => {
                           )}
 
                           {/* Asignar Domiciliario */}
-                          {ruta.estado === "Pendiente" && hasPermission("asignar_rutas") && (
+                          {ruta.estado === "Pendiente" && tienePermiso("asignar_rutas") && (
                             <button
                               onClick={() => handleAsignarDomiciliario(ruta)}
                               className="text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
@@ -769,7 +769,7 @@ const Rutas: React.FC = () => {
 
                           {/* Cambiar Estado */}
                           {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && hasPermission("gestionar_rutas") && (
+                            ruta.estado !== "Completada" && tienePermiso("gestionar_rutas") && (
                               <button
                                 onClick={() => handleCambiarEstado(ruta)}
                                 className="text-green-600 hover:text-green-800 font-medium text-sm transition-colors"
@@ -793,7 +793,7 @@ const Rutas: React.FC = () => {
 
                           {/* Cancelar Ruta */}
                           {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && hasPermission("cancelar_rutas") && (
+                            ruta.estado !== "Completada" && tienePermiso("cancelar_rutas") && (
                               <button
                                 onClick={() => handleCancelar(ruta)}
                                 className="text-red-600 hover:text-red-800 font-medium text-sm transition-colors"

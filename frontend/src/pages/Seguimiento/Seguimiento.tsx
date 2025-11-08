@@ -24,7 +24,7 @@ const Seguimiento: React.FC = () => {
   // ============================================================================
   // PERMISOS
   // ============================================================================
-  const { hasPermission } = usePermissions();
+  const { tienePermiso } = usePermissions();
 
   // ============================================================================
   // ESTADOS
@@ -497,7 +497,7 @@ const Seguimiento: React.FC = () => {
                         </div>
                       )}
 
-                      {hasPermission("actualizar_ubicacion") && (
+                      {tienePermiso("actualizar_ubicacion") && (
                         <button
                           onClick={() => handleSimularMovimiento(dom.id_domiciliario)}
                           className="w-full mt-2 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-3 rounded transition-colors"
