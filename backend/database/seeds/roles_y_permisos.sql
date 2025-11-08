@@ -86,6 +86,13 @@ INSERT INTO Permiso (nombre, fecha_creacion, fecha_actualizacion) VALUES
 ('editar_pacientes', NOW(), NOW()),
 ('eliminar_pacientes', NOW(), NOW()),
 
+-- Módulo: Entregas (RF008)
+('ver_entregas', NOW(), NOW()),
+('crear_entregas', NOW(), NOW()),
+('editar_entregas', NOW(), NOW()),
+('cancelar_entregas', NOW(), NOW()),
+('despachar_entregas', NOW(), NOW()),
+
 -- Módulo: Tarifarios (ya existentes, pero los agregamos por completitud)
 ('ver_tarifarios', NOW(), NOW()),
 ('crear_tarifarios', NOW(), NOW()),
@@ -134,7 +141,9 @@ WHERE nombre IN (
     -- Inventario
     'ver_inventario', 'ver_movimientos_inventario', 'actualizar_stock_minimo',
     -- Reportes
-    'ver_reportes_compras', 'exportar_reportes'
+    'ver_reportes_compras', 'exportar_reportes',
+    -- Entregas (solo ver)
+    'ver_entregas'
 )
 ON DUPLICATE KEY UPDATE fecha_actualizacion = NOW();
 
@@ -158,7 +167,9 @@ WHERE nombre IN (
     -- Inventario
     'ver_inventario', 'ajustar_inventario', 'ver_movimientos_inventario',
     -- Pacientes (para gestionar entregas)
-    'ver_pacientes', 'crear_pacientes', 'editar_pacientes'
+    'ver_pacientes', 'crear_pacientes', 'editar_pacientes',
+    -- Entregas (rol principal para este módulo)
+    'ver_entregas', 'crear_entregas', 'editar_entregas', 'despachar_entregas', 'cancelar_entregas'
 )
 ON DUPLICATE KEY UPDATE fecha_actualizacion = NOW();
 
@@ -182,7 +193,9 @@ WHERE nombre IN (
     -- Inventario (solo ver)
     'ver_inventario', 'ver_movimientos_inventario',
     -- Reportes
-    'ver_reportes_compras', 'exportar_reportes', 'ver_resumen_ejecutivo'
+    'ver_reportes_compras', 'exportar_reportes', 'ver_resumen_ejecutivo',
+    -- Entregas (solo ver)
+    'ver_entregas'
 )
 ON DUPLICATE KEY UPDATE fecha_actualizacion = NOW();
 
@@ -209,7 +222,8 @@ WHERE nombre IN (
     'ver_productos',
     'ver_proveedores',
     'ver_ordenes',
-    'ver_inventario'
+    'ver_inventario',
+    'ver_entregas'
 )
 ON DUPLICATE KEY UPDATE fecha_actualizacion = NOW();
 
