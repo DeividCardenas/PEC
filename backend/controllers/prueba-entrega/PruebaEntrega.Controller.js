@@ -7,8 +7,7 @@
  * - Confirmar entrega completa
  */
 
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../config/database");
 const fs = require("fs");
 const path = require("path");
 

@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const compression = require("compression");
 
 // Clase principal del servidor
 class Server {
@@ -26,6 +27,19 @@ class Server {
    * Configura los middlewares globales del servidor.
    */
   middlewares() {
+    // ===== PERFORMANCE =====
+
+    // Compression: Comprime las respuestas HTTP
+    this.app.use(compression({
+      filter: (req, res) => {
+        if (req.headers['x-no-compression']) {
+          return false;
+        }
+        return compression.filter(req, res);
+      },
+      level: 6 // Nivel de compresión (0-9, 6 es un buen balance)
+    }));
+
     // ===== SEGURIDAD =====
 
     // Helmet: Configura headers HTTP seguros
@@ -77,6 +91,39 @@ class Server {
    * Define todas las rutas del servidor agrupadas por módulo.
    */
   routes() {
+    // ===== HEALTH CHECK =====
+    // Endpoint para monitoreo y load balancers
+    this.app.get("/health", (req, res) => {
+      res.status(200).json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || "development",
+        version: "1.0.0"
+      });
+    });
+
+    // Endpoint de health check con verificación de DB
+    this.app.get(this.path + "health", async (req, res) => {
+      try {
+        const prisma = require("../config/database");
+        await prisma.$queryRaw`SELECT 1`;
+        res.status(200).json({
+          status: "ok",
+          database: "connected",
+          timestamp: new Date().toISOString(),
+          uptime: process.uptime()
+        });
+      } catch (error) {
+        res.status(503).json({
+          status: "error",
+          database: "disconnected",
+          timestamp: new Date().toISOString(),
+          error: error.message
+        });
+      }
+    });
+
     // Rutas de autenticación y usuarios
     this.app.use(this.path + "usuario", require("../routes/auth/Usuario.Routes"));
     this.app.use(this.path + "token", require("../routes/auth/token.Routes"));
@@ -117,8 +164,8 @@ class Server {
     this.app.use(this.path + "rutas", require("../routes/rutas/Ruta.routes"));
 
     // Rutas de seguimiento y prueba de entrega (RF010)
-    this.app.use(this.path + "seguimiento", require("../routes/Seguimiento.routes"));
-    this.app.use(this.path + "prueba-entrega", require("../routes/PruebaEntrega.routes"));
+    this.app.use(this.path + "seguimiento", require("../routes/seguimiento/Seguimiento.routes"));
+    this.app.use(this.path + "prueba-entrega", require("../routes/prueba-entrega/PruebaEntrega.routes"));
 
     // Rutas para EPS y tarifarios
     this.app.use(this.path + "eps", require("../routes/eps/EPS.routes"));
