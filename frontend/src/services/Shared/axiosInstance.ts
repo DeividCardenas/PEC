@@ -92,6 +92,36 @@ export const setBaseURL = (service: string) => {
     case 'tarifario-producto':
       axiosInstance.defaults.baseURL = `${baseURL}/tarifario-producto`;
       break;
+    case 'ordenes-compra':
+      axiosInstance.defaults.baseURL = `${baseURL}/ordenes-compra`;
+      break;
+    case 'inventario':
+      axiosInstance.defaults.baseURL = `${baseURL}/inventario`;
+      break;
+    case 'reportes':
+      axiosInstance.defaults.baseURL = `${baseURL}/reportes`;
+      break;
+    case 'pacientes':
+      axiosInstance.defaults.baseURL = `${baseURL}/pacientes`;
+      break;
+    case 'entregas':
+      axiosInstance.defaults.baseURL = `${baseURL}/entregas`;
+      break;
+    case 'domiciliarios':
+      axiosInstance.defaults.baseURL = `${baseURL}/domiciliarios`;
+      break;
+    case 'rutas':
+      axiosInstance.defaults.baseURL = `${baseURL}/rutas`;
+      break;
+    case 'seguimiento':
+      axiosInstance.defaults.baseURL = `${baseURL}/seguimiento`;
+      break;
+    case 'prueba-entrega':
+      axiosInstance.defaults.baseURL = `${baseURL}/prueba-entrega`;
+      break;
+    case 'compare':
+      axiosInstance.defaults.baseURL = `${baseURL}/compare`;
+      break;
     default:
       console.error('Servicio no encontrado');
   }

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma migrate:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"si procede\" npx prisma migrate reset:*)",
+      "Bash(node scripts/seed.js:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(node scripts/create_ordenes_tables.js:*)",
+      "Bash(node scripts/seed_ordenes_compra.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

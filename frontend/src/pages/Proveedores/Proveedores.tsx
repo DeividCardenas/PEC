@@ -373,9 +373,9 @@ const Proveedores = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16">
+    <div className="min-h-screen bg-dark-bg">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-dark-card border-b border-dark-border shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -387,8 +387,8 @@ const Proveedores = () => {
                 Volver
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Gestión de Proveedores</h1>
-                <p className="text-gray-600 mt-1">Administra los proveedores y sus transacciones</p>
+                <h1 className="text-3xl font-bold text-dark-text">Gestión de Proveedores</h1>
+                <p className="text-dark-text-secondary mt-1">Administra los proveedores y sus transacciones</p>
               </div>
             </div>
             <Button
@@ -422,7 +422,7 @@ const Proveedores = () => {
                 <select
                   value={activoFilter}
                   onChange={(e) => setActivoFilter(e.target.value)}
-                  className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                  className="w-full sm:w-auto px-4 py-2.5 border border-dark-border rounded-xl bg-dark-card text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                 >
                   <option value="">Todos los proveedores</option>
                   <option value="true">Activos</option>
@@ -537,11 +537,11 @@ const Proveedores = () => {
           />
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+            <label className="block text-sm font-medium text-dark-text mb-2">Notas</label>
             <textarea
               value={formData.notas}
               onChange={(e) => handleFormChange("notas", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 border border-dark-border rounded-xl bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               rows={3}
               placeholder="Notas adicionales..."
             />
@@ -654,11 +654,11 @@ const Proveedores = () => {
           />
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+            <label className="block text-sm font-medium text-dark-text mb-2">Notas</label>
             <textarea
               value={formData.notas}
               onChange={(e) => handleFormChange("notas", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 border border-dark-border rounded-xl bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               rows={3}
               placeholder="Notas adicionales..."
             />
@@ -696,7 +696,7 @@ const Proveedores = () => {
         title="Confirmar Eliminación"
         size="sm"
       >
-        <p className="text-gray-700 mb-6">
+        <p className="text-dark-text mb-6">
           ¿Está seguro que desea eliminar el proveedor <strong>{selectedProveedor?.nombre}</strong>? Esta
           acción no se puede deshacer.
         </p>
@@ -784,13 +784,13 @@ const Proveedores = () => {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-dark-text mb-2">
               Tipo <span className="text-red-500">*</span>
             </label>
             <select
               value={transactionFormData.tipo}
               onChange={(e) => handleTransactionFormChange("tipo", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 border border-dark-border rounded-xl bg-dark-card text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
             >
               <option value="compra">Compra</option>
               <option value="devolucion">Devolución</option>
@@ -849,11 +849,11 @@ const Proveedores = () => {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+            <label className="block text-sm font-medium text-dark-text mb-2">Estado</label>
             <select
               value={transactionFormData.estado}
               onChange={(e) => handleTransactionFormChange("estado", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 border border-dark-border rounded-xl bg-dark-card text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
             >
               <option value="pendiente">Pendiente</option>
               <option value="completada">Completada</option>
@@ -862,11 +862,11 @@ const Proveedores = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+            <label className="block text-sm font-medium text-dark-text mb-2">Notas</label>
             <textarea
               value={transactionFormData.notas}
               onChange={(e) => handleTransactionFormChange("notas", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 border border-dark-border rounded-xl bg-dark-bg text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               rows={3}
               placeholder="Notas adicionales..."
             />
