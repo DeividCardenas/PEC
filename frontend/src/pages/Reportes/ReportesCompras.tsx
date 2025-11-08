@@ -27,7 +27,7 @@ import {
   ResumenEjecutivoResponse,
 } from "../../services/Reportes/reportesService";
 import { fetchProveedores } from "../../services/Proveedores/proveedoresService";
-import { fetchLaboratorios } from "../../services/Empresas/empresasService";
+import { fetchLaboratorios } from "../../services/Empresa/empresasService";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Pagination from "../../components/Pagination";
 
@@ -206,11 +206,11 @@ const ReportesCompras = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
-      <header className="bg-indigo-800 shadow-lg p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
+      <header className="bg-primary-900 border-b border-primary-800 shadow-lg p-4 flex items-center justify-between">
         <button
           onClick={() => navigate("/Menu")}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-indigo-700"
+          className="flex items-center text-white hover:text-primary-300 transition-colors px-4 py-2 rounded-lg hover:bg-primary-800"
         >
           <ArrowLeft size={24} className="mr-2" />
           <span className="font-medium">Volver al Menú</span>
@@ -224,44 +224,44 @@ const ReportesCompras = () => {
 
       <div className="flex-1 p-4 space-y-4">
         {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-lg p-4">
+        <div className="bg-dark-card border border-dark-border rounded-lg shadow-lg p-4">
           <div className="flex items-center gap-2 mb-4">
-            <FontAwesomeIcon icon={faFilter} className="text-indigo-600" />
-            <h2 className="text-lg font-semibold text-gray-800">Filtros de Búsqueda</h2>
+            <FontAwesomeIcon icon={faFilter} className="text-primary-400" />
+            <h2 className="text-lg font-semibold text-dark-text">Filtros de Búsqueda</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Fecha desde */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Desde</label>
+              <label className="block text-sm font-medium text-dark-text-secondary mb-1">Fecha Desde</label>
               <input
                 type="date"
                 value={fechaDesde}
                 onChange={(e) => setFechaDesde(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-2 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md text-sm focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             {/* Fecha hasta */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Hasta</label>
+              <label className="block text-sm font-medium text-dark-text-secondary mb-1">Fecha Hasta</label>
               <input
                 type="date"
                 value={fechaHasta}
                 onChange={(e) => setFechaHasta(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-2 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md text-sm focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             {/* Proveedor */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+              <label className="block text-sm font-medium text-dark-text-secondary mb-1">Proveedor</label>
               <select
                 value={proveedorSeleccionado || ""}
                 onChange={(e) =>
                   setProveedorSeleccionado(e.target.value ? parseInt(e.target.value) : undefined)
                 }
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-2 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md text-sm focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Todos los proveedores</option>
                 {proveedores.map((prov) => (
@@ -274,13 +274,13 @@ const ReportesCompras = () => {
 
             {/* Laboratorio */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Laboratorio</label>
+              <label className="block text-sm font-medium text-dark-text-secondary mb-1">Laboratorio</label>
               <select
                 value={laboratorioSeleccionado || ""}
                 onChange={(e) =>
                   setLaboratorioSeleccionado(e.target.value ? parseInt(e.target.value) : undefined)
                 }
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-2 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md text-sm focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Todos los laboratorios</option>
                 {laboratorios.map((lab) => (
@@ -293,11 +293,11 @@ const ReportesCompras = () => {
 
             {/* Estado */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <label className="block text-sm font-medium text-dark-text-secondary mb-1">Estado</label>
               <select
                 value={estadoSeleccionado}
                 onChange={(e) => setEstadoSeleccionado(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-2 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md text-sm focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Todos los estados</option>
                 <option value="pendiente">Pendiente</option>
@@ -310,13 +310,13 @@ const ReportesCompras = () => {
 
             {/* Agrupar por */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Agrupar Por</label>
+              <label className="block text-sm font-medium text-dark-text-secondary mb-1">Agrupar Por</label>
               <select
                 value={agruparPor}
                 onChange={(e) =>
                   setAgruparPor(e.target.value as "proveedor" | "laboratorio" | "mes" | "estado" | "")
                 }
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                className="w-full p-2 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md text-sm focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Sin agrupación</option>
                 <option value="proveedor">Proveedor</option>
@@ -330,21 +330,21 @@ const ReportesCompras = () => {
           <div className="flex gap-3 mt-4">
             <button
               onClick={handleAplicarFiltros}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2"
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-2 shadow-md transition-colors"
             >
               <FontAwesomeIcon icon={faFilter} />
               Aplicar Filtros
             </button>
             <button
               onClick={handleLimpiarFiltros}
-              className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg"
+              className="px-4 py-2 bg-dark-bg-secondary hover:bg-dark-bg-tertiary border border-dark-border text-dark-text rounded-lg transition-colors"
             >
               Limpiar
             </button>
             <button
               onClick={handleExportarCSV}
               disabled={exportando}
-              className="ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
+              className="ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50 shadow-md transition-colors"
             >
               <FontAwesomeIcon icon={faFileExcel} />
               {exportando ? "Exportando..." : "Exportar CSV"}
@@ -353,15 +353,15 @@ const ReportesCompras = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-lg">
-          <div className="border-b border-gray-200 px-4">
+        <div className="bg-dark-card border border-dark-border rounded-lg shadow-lg">
+          <div className="border-b border-dark-border px-4">
             <div className="flex gap-4">
               <button
                 onClick={() => setTabActiva("reporte")}
                 className={`px-4 py-3 font-medium border-b-2 transition-colors ${
                   tabActiva === "reporte"
-                    ? "border-indigo-600 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-primary-500 text-primary-400"
+                    : "border-transparent text-dark-text-secondary hover:text-dark-text"
                 }`}
               >
                 <FontAwesomeIcon icon={faTable} className="mr-2" />
@@ -371,8 +371,8 @@ const ReportesCompras = () => {
                 onClick={() => setTabActiva("resumen")}
                 className={`px-4 py-3 font-medium border-b-2 transition-colors ${
                   tabActiva === "resumen"
-                    ? "border-indigo-600 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-primary-500 text-primary-400"
+                    : "border-transparent text-dark-text-secondary hover:text-dark-text"
                 }`}
               >
                 <FileText size={16} className="inline mr-2" />
@@ -382,8 +382,8 @@ const ReportesCompras = () => {
                 onClick={() => setTabActiva("tendencias")}
                 className={`px-4 py-3 font-medium border-b-2 transition-colors ${
                   tabActiva === "tendencias"
-                    ? "border-indigo-600 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-primary-500 text-primary-400"
+                    : "border-transparent text-dark-text-secondary hover:text-dark-text"
                 }`}
               >
                 <TrendingUp size={16} className="inline mr-2" />
@@ -395,7 +395,7 @@ const ReportesCompras = () => {
           <div className="p-4">
             {loading ? (
               <div className="flex justify-center items-center py-12">
-                <LoadingSpinner size="lg" color="text-indigo-600" text="Generando reporte..." />
+                <LoadingSpinner size="lg" color="text-primary-500" text="Generando reporte..." />
               </div>
             ) : (
               <>
@@ -404,15 +404,15 @@ const ReportesCompras = () => {
                   <div className="space-y-4">
                     {/* Estadísticas generales */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="bg-indigo-50 rounded-lg p-4">
-                        <p className="text-sm text-gray-600">Total Órdenes</p>
-                        <p className="text-2xl font-bold text-indigo-900">
+                      <div className="bg-primary-900/30 border border-primary-700 rounded-lg p-4">
+                        <p className="text-sm text-dark-text-secondary">Total Órdenes</p>
+                        <p className="text-2xl font-bold text-primary-400">
                           {reporte.estadisticas.totalOrdenes}
                         </p>
                       </div>
-                      <div className="bg-green-50 rounded-lg p-4">
-                        <p className="text-sm text-gray-600">Monto Total</p>
-                        <p className="text-xl font-bold text-green-900">
+                      <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                        <p className="text-sm text-dark-text-secondary">Monto Total</p>
+                        <p className="text-xl font-bold text-green-400">
                           {new Intl.NumberFormat("es-CO", {
                             style: "currency",
                             currency: "COP",
@@ -420,9 +420,9 @@ const ReportesCompras = () => {
                           }).format(Number(reporte.estadisticas.montoTotal))}
                         </p>
                       </div>
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <p className="text-sm text-gray-600">Promedio por Orden</p>
-                        <p className="text-xl font-bold text-blue-900">
+                      <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+                        <p className="text-sm text-dark-text-secondary">Promedio por Orden</p>
+                        <p className="text-xl font-bold text-blue-400">
                           {new Intl.NumberFormat("es-CO", {
                             style: "currency",
                             currency: "COP",
@@ -430,9 +430,9 @@ const ReportesCompras = () => {
                           }).format(Number(reporte.estadisticas.promedioOrden))}
                         </p>
                       </div>
-                      <div className="bg-purple-50 rounded-lg p-4">
-                        <p className="text-sm text-gray-600">Total Impuestos</p>
-                        <p className="text-xl font-bold text-purple-900">
+                      <div className="bg-purple-900/30 border border-purple-700 rounded-lg p-4">
+                        <p className="text-sm text-dark-text-secondary">Total Impuestos</p>
+                        <p className="text-xl font-bold text-purple-400">
                           {new Intl.NumberFormat("es-CO", {
                             style: "currency",
                             currency: "COP",
@@ -445,12 +445,12 @@ const ReportesCompras = () => {
                     {/* Datos agrupados */}
                     {reporte.datosAgrupados && reporte.datosAgrupados.length > 0 && (
                       <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-3">
+                        <h3 className="text-lg font-semibold mb-3 text-dark-text">
                           Datos Agrupados por {filtros.agrupar_por}
                         </h3>
                         <div className="overflow-x-auto">
-                          <table className="min-w-full bg-white border">
-                            <thead className="bg-gray-100">
+                          <table className="min-w-full bg-dark-bg-secondary border border-dark-border rounded-lg">
+                            <thead className="bg-primary-900/50 text-dark-text">
                               <tr>
                                 {filtros.agrupar_por === "proveedor" && (
                                   <>
@@ -483,9 +483,9 @@ const ReportesCompras = () => {
                                 )}
                               </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="text-dark-text">
                               {reporte.datosAgrupados.map((dato, index) => (
-                                <tr key={index} className="border-t hover:bg-gray-50">
+                                <tr key={index} className="border-t border-dark-border hover:bg-dark-card-hover">
                                   {filtros.agrupar_por === "proveedor" && (
                                     <>
                                       <td className="p-3">{dato.proveedor?.nombre}</td>
@@ -549,7 +549,7 @@ const ReportesCompras = () => {
 
                     {/* Lista de órdenes */}
                     <div className="mt-6">
-                      <h3 className="text-lg font-semibold mb-3">
+                      <h3 className="text-lg font-semibold mb-3 text-dark-text">
                         Órdenes ({reporte.paginacion.total})
                       </h3>
 
@@ -560,8 +560,8 @@ const ReportesCompras = () => {
                       />
 
                       <div className="overflow-x-auto mt-3">
-                        <table className="min-w-full bg-white border text-sm">
-                          <thead className="bg-indigo-900 text-white">
+                        <table className="min-w-full bg-dark-bg-secondary border border-dark-border rounded-lg text-sm">
+                          <thead className="bg-primary-900/50 text-white">
                             <tr>
                               <th className="p-2 text-left">N° Orden</th>
                               <th className="p-2 text-left">Fecha</th>
@@ -572,9 +572,9 @@ const ReportesCompras = () => {
                               <th className="p-2 text-right">Total</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody className="text-dark-text">
                             {reporte.ordenes.map((orden) => (
-                              <tr key={orden.id_orden_compra} className="border-t hover:bg-gray-50">
+                              <tr key={orden.id_orden_compra} className="border-t border-dark-border hover:bg-dark-card-hover">
                                 <td className="p-2 font-medium">{orden.numero_orden}</td>
                                 <td className="p-2">
                                   {new Date(orden.fecha_orden).toLocaleDateString("es-CO")}
@@ -633,9 +633,9 @@ const ReportesCompras = () => {
                 {tabActiva === "resumen" && resumenEjecutivo && (
                   <div className="space-y-6">
                     {/* Período */}
-                    <div className="bg-indigo-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-indigo-900 mb-2">Período del Reporte</h3>
-                      <p className="text-gray-700">
+                    <div className="bg-primary-900/30 border border-primary-700 rounded-lg p-4">
+                      <h3 className="font-semibold text-primary-400 mb-2">Período del Reporte</h3>
+                      <p className="text-dark-text">
                         Desde: <strong>{resumenEjecutivo.periodo.desde}</strong> - Hasta:{" "}
                         <strong>{resumenEjecutivo.periodo.hasta}</strong>
                       </p>
@@ -643,17 +643,17 @@ const ReportesCompras = () => {
 
                     {/* Estadísticas Generales */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-3">Estadísticas Generales</h3>
+                      <h3 className="text-lg font-semibold mb-3 text-dark-text">Estadísticas Generales</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white border-2 border-indigo-200 rounded-lg p-4">
-                          <p className="text-sm text-gray-600">Total Órdenes</p>
-                          <p className="text-3xl font-bold text-indigo-900">
+                        <div className="bg-primary-900/30 border-2 border-primary-700 rounded-lg p-4">
+                          <p className="text-sm text-dark-text-secondary">Total Órdenes</p>
+                          <p className="text-3xl font-bold text-primary-400">
                             {resumenEjecutivo.estadisticasGenerales.totalOrdenes}
                           </p>
                         </div>
-                        <div className="bg-white border-2 border-green-200 rounded-lg p-4">
-                          <p className="text-sm text-gray-600">Monto Total</p>
-                          <p className="text-2xl font-bold text-green-900">
+                        <div className="bg-green-900/30 border-2 border-green-700 rounded-lg p-4">
+                          <p className="text-sm text-dark-text-secondary">Monto Total</p>
+                          <p className="text-2xl font-bold text-green-400">
                             {new Intl.NumberFormat("es-CO", {
                               style: "currency",
                               currency: "COP",
@@ -661,9 +661,9 @@ const ReportesCompras = () => {
                             }).format(Number(resumenEjecutivo.estadisticasGenerales.montoTotal))}
                           </p>
                         </div>
-                        <div className="bg-white border-2 border-blue-200 rounded-lg p-4">
-                          <p className="text-sm text-gray-600">Promedio por Orden</p>
-                          <p className="text-2xl font-bold text-blue-900">
+                        <div className="bg-blue-900/30 border-2 border-blue-700 rounded-lg p-4">
+                          <p className="text-sm text-dark-text-secondary">Promedio por Orden</p>
+                          <p className="text-2xl font-bold text-blue-400">
                             {new Intl.NumberFormat("es-CO", {
                               style: "currency",
                               currency: "COP",
@@ -671,9 +671,9 @@ const ReportesCompras = () => {
                             }).format(Number(resumenEjecutivo.estadisticasGenerales.promedioOrden))}
                           </p>
                         </div>
-                        <div className="bg-white border-2 border-purple-200 rounded-lg p-4">
-                          <p className="text-sm text-gray-600">Total Impuestos</p>
-                          <p className="text-2xl font-bold text-purple-900">
+                        <div className="bg-purple-900/30 border-2 border-purple-700 rounded-lg p-4">
+                          <p className="text-sm text-dark-text-secondary">Total Impuestos</p>
+                          <p className="text-2xl font-bold text-purple-400">
                             {new Intl.NumberFormat("es-CO", {
                               style: "currency",
                               currency: "COP",
@@ -686,7 +686,7 @@ const ReportesCompras = () => {
 
                     {/* Top Proveedores */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-dark-text">
                         <Users size={20} />
                         Top 5 Proveedores
                       </h3>
@@ -694,18 +694,18 @@ const ReportesCompras = () => {
                         {resumenEjecutivo.topProveedores.map((dato, index) => (
                           <div
                             key={index}
-                            className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200"
+                            className="bg-primary-900/30 rounded-lg p-4 border border-primary-700"
                           >
                             <div className="flex justify-between items-start mb-2">
                               <div>
-                                <p className="font-semibold text-gray-900">
+                                <p className="font-semibold text-dark-text">
                                   {index + 1}. {dato.proveedor?.nombre}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-dark-text-secondary">
                                   {dato.cantidadOrdenes} órdenes
                                 </p>
                               </div>
-                              <p className="text-lg font-bold text-indigo-900">
+                              <p className="text-lg font-bold text-primary-400">
                                 {new Intl.NumberFormat("es-CO", {
                                   style: "currency",
                                   currency: "COP",
@@ -721,7 +721,7 @@ const ReportesCompras = () => {
 
                     {/* Top Laboratorios */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-dark-text">
                         <Package size={20} />
                         Top 5 Laboratorios
                       </h3>
@@ -729,19 +729,19 @@ const ReportesCompras = () => {
                         {resumenEjecutivo.topLaboratorios.map((dato, index) => (
                           <div
                             key={index}
-                            className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200"
+                            className="bg-green-900/30 rounded-lg p-4 border border-green-700"
                           >
                             <div className="flex justify-between items-start mb-2">
                               <div>
-                                <p className="font-semibold text-gray-900">
+                                <p className="font-semibold text-dark-text">
                                   {index + 1}. {dato.laboratorio?.nombre}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-dark-text-secondary">
                                   {dato.cantidadProductos} productos - {dato.cantidadUnidades}{" "}
                                   unidades
                                 </p>
                               </div>
-                              <p className="text-lg font-bold text-green-900">
+                              <p className="text-lg font-bold text-green-400">
                                 {new Intl.NumberFormat("es-CO", {
                                   style: "currency",
                                   currency: "COP",
@@ -757,18 +757,18 @@ const ReportesCompras = () => {
 
                     {/* Distribución por Estado */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-3">Distribución por Estado</h3>
+                      <h3 className="text-lg font-semibold mb-3 text-dark-text">Distribución por Estado</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                         {resumenEjecutivo.distribucionEstados.map((dist) => (
                           <div
                             key={dist.estado}
-                            className="bg-white rounded-lg p-4 border-2 border-gray-200 text-center"
+                            className="bg-dark-bg-secondary rounded-lg p-4 border-2 border-dark-border text-center"
                           >
-                            <p className="text-sm text-gray-600 capitalize">{dist.estado === "en_proceso" ? "En Proceso" : dist.estado}</p>
-                            <p className="text-2xl font-bold text-gray-900 my-1">
+                            <p className="text-sm text-dark-text-secondary capitalize">{dist.estado === "en_proceso" ? "En Proceso" : dist.estado}</p>
+                            <p className="text-2xl font-bold text-dark-text my-1">
                               {dist.cantidadOrdenes}
                             </p>
-                            <p className="text-xs font-semibold text-gray-700">
+                            <p className="text-xs font-semibold text-primary-400">
                               {new Intl.NumberFormat("es-CO", {
                                 style: "currency",
                                 currency: "COP",
@@ -786,7 +786,7 @@ const ReportesCompras = () => {
                 {/* Tab de Tendencias */}
                 {tabActiva === "tendencias" && tendencias.length > 0 && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-semibold">Tendencias Mensuales</h3>
+                    <h3 className="text-lg font-semibold text-dark-text">Tendencias Mensuales</h3>
 
                     {/* Gráfico simple de barras con CSS */}
                     <div className="space-y-3">
@@ -795,15 +795,15 @@ const ReportesCompras = () => {
                         const porcentaje = (tend.montoTotal / maxMonto) * 100;
 
                         return (
-                          <div key={tend.periodo} className="bg-white rounded-lg p-4 border">
+                          <div key={tend.periodo} className="bg-dark-bg-secondary rounded-lg p-4 border border-dark-border">
                             <div className="flex justify-between items-center mb-2">
                               <div>
-                                <p className="font-semibold text-gray-900">{tend.periodo}</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="font-semibold text-dark-text">{tend.periodo}</p>
+                                <p className="text-sm text-dark-text-secondary">
                                   {tend.cantidadOrdenes} órdenes
                                 </p>
                               </div>
-                              <p className="text-lg font-bold text-indigo-900">
+                              <p className="text-lg font-bold text-primary-400">
                                 {new Intl.NumberFormat("es-CO", {
                                   style: "currency",
                                   currency: "COP",
@@ -811,28 +811,28 @@ const ReportesCompras = () => {
                                 }).format(tend.montoTotal)}
                               </p>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-4">
+                            <div className="w-full bg-dark-border rounded-full h-4">
                               <div
-                                className="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-500"
+                                className="bg-gradient-to-r from-primary-500 to-purple-500 h-4 rounded-full transition-all duration-500"
                                 style={{ width: `${porcentaje}%` }}
                               ></div>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-600">
+                            <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-dark-text-secondary">
                               <div>
                                 Completadas:{" "}
-                                <span className="font-semibold text-green-700">
+                                <span className="font-semibold text-green-400">
                                   {tend.ordenesCompletadas}
                                 </span>
                               </div>
                               <div>
                                 Rechazadas:{" "}
-                                <span className="font-semibold text-red-700">
+                                <span className="font-semibold text-red-400">
                                   {tend.ordenesRechazadas}
                                 </span>
                               </div>
                               <div>
                                 Pendientes:{" "}
-                                <span className="font-semibold text-yellow-700">
+                                <span className="font-semibold text-yellow-400">
                                   {tend.ordenesPendientes}
                                 </span>
                               </div>
@@ -847,14 +847,14 @@ const ReportesCompras = () => {
                 {/* Mensaje si no hay datos */}
                 {tabActiva === "reporte" && reporte && reporte.ordenes.length === 0 && (
                   <div className="text-center py-12">
-                    <p className="text-gray-600 text-lg">
+                    <p className="text-dark-text-secondary text-lg">
                       No se encontraron órdenes con los filtros aplicados
                     </p>
                   </div>
                 )}
                 {tabActiva === "tendencias" && tendencias.length === 0 && (
                   <div className="text-center py-12">
-                    <p className="text-gray-600 text-lg">No hay datos de tendencias disponibles</p>
+                    <p className="text-dark-text-secondary text-lg">No hay datos de tendencias disponibles</p>
                   </div>
                 )}
               </>
