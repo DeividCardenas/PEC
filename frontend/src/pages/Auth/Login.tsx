@@ -68,8 +68,8 @@ const Login: React.FC = () => {
               <div className="text-primary-200 text-sm">Seguro</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold text-white mb-1">RF010</div>
-              <div className="text-primary-200 text-sm">Completo</div>
+              <div className="text-3xl font-bold text-white mb-1">INVIMA</div>
+              <div className="text-primary-200 text-sm">Certificado</div>
             </div>
           </div>
         </div>
