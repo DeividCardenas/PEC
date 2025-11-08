@@ -44,6 +44,8 @@ const ControlInventario = lazy(() => import("./pages/Inventario/ControlInventari
 const ReportesCompras = lazy(() => import("./pages/Reportes/ReportesCompras"));
 const Pacientes = lazy(() => import("./pages/Pacientes/Pacientes"));
 const Entregas = lazy(() => import("./pages/Entregas/Entregas"));
+const Rutas = lazy(() => import("./pages/Rutas/Rutas"));
+const Seguimiento = lazy(() => import("./pages/Seguimiento/Seguimiento"));
 
 // Componente de carga mientras se cargan los módulos
 const LoadingFallback = () => (
@@ -186,6 +188,22 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <Entregas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Rutas"
+              element={
+                <ProtectedRoute>
+                  <Rutas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Seguimiento"
+              element={
+                <ProtectedRoute>
+                  <Seguimiento />
                 </ProtectedRoute>
               }
             />
