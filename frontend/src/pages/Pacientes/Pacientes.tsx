@@ -5,19 +5,22 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, UserPlus, Search, Activity } from "lucide-react";
-import { toast } from "react-toastify";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faEdit,
-  faTrash,
-  faEye,
-  faUserCheck,
-  faTimes,
-  faIdCard,
-  faPhone,
-  faMapMarkerAlt,
-} from "@fortawesome/free-solid-svg-icons";
+  ArrowLeft,
+  Users,
+  UserPlus,
+  Edit2,
+  Trash2,
+  Eye,
+  UserCheck,
+  IdCard,
+  Phone,
+  MapPin,
+  Activity,
+  TrendingUp,
+  UserX,
+} from "lucide-react";
+import { toast } from "react-toastify";
 import {
   fetchPacientes,
   fetchPaciente,
@@ -33,8 +36,12 @@ import {
 import { usePermissions } from "../../hooks/usePermissions";
 import { PermissionGuard } from "../../components/PermissionGuard";
 import Modal from "../../components/Modal";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import Pagination from "../../components/Pagination";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Badge from "../../components/Badge";
+import Table, { Column } from "../../components/Table";
+import Card, { CardContent } from "../../components/Card";
 
 const Pacientes = () => {
   const navigate = useNavigate();
@@ -273,205 +280,236 @@ const Pacientes = () => {
     return `${edad} años`;
   };
 
+  // Definir columnas de la tabla
+  const columns: Column<Paciente>[] = [
+    {
+      key: "numero_identificacion",
+      title: "Identificación",
+      align: "center",
+      render: (val, row) => (
+        <div className="flex flex-col items-center">
+          <span className="text-xs text-gray-600">{row.tipo_identificacion}</span>
+          <span className="font-medium">{val}</span>
+        </div>
+      ),
+    },
+    { key: "nombres", title: "Nombres", align: "left" },
+    { key: "apellidos", title: "Apellidos", align: "left" },
+    {
+      key: "telefono_principal",
+      title: "Teléfono",
+      align: "center",
+      render: (val) => (
+        <div className="flex items-center justify-center gap-1">
+          <Phone size={14} className="text-primary-600" />
+          {val}
+        </div>
+      ),
+    },
+    { key: "ciudad", title: "Ciudad", align: "center" },
+    { key: "eps", title: "EPS", align: "center", render: (val) => val || "N/A" },
+    {
+      key: "activo",
+      title: "Estado",
+      align: "center",
+      render: (val) => <Badge variant={val ? "success" : "danger"}>{val ? "Activo" : "Inactivo"}</Badge>,
+    },
+    {
+      key: "id_paciente",
+      title: "Acciones",
+      align: "center",
+      render: (_, row) => (
+        <div className="flex justify-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleOpenDetailsModal(row)}
+            icon={<Eye size={16} />}
+            title="Ver detalles"
+          />
+          {row.activo ? (
+            <>
+              <PermissionGuard permission="editar_pacientes">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleOpenEditModal(row)}
+                  icon={<Edit2 size={16} />}
+                  title="Editar"
+                />
+              </PermissionGuard>
+              <PermissionGuard permission="eliminar_pacientes">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleOpenDeleteModal(row)}
+                  icon={<Trash2 size={16} className="text-red-600" />}
+                  title="Desactivar"
+                />
+              </PermissionGuard>
+            </>
+          ) : (
+            <PermissionGuard permission="editar_pacientes">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleReactivarPaciente(row)}
+                icon={<UserCheck size={16} className="text-green-600" />}
+                title="Reactivar"
+              />
+            </PermissionGuard>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-900 via-emerald-900 to-green-900 flex flex-col">
-      <header className="bg-teal-800 shadow-lg p-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate("/Menu")}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-teal-700"
-        >
-          <ArrowLeft size={24} className="mr-2" />
-          <span className="font-medium">Volver al Menú</span>
-        </button>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Users size={28} />
-          Gestión de Pacientes
-        </h1>
-        <PermissionGuard permission="crear_pacientes">
-          <button
-            onClick={() => {
-              resetForm();
-              setShowCreateModal(true);
-            }}
-            className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition-colors"
-          >
-            <UserPlus size={20} className="mr-2" />
-            Nuevo Paciente
-          </button>
-        </PermissionGuard>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" onClick={() => navigate("/Menu")} icon={<ArrowLeft size={20} />}>
+                Volver
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                  <Users size={32} />
+                  Gestión de Pacientes
+                </h1>
+                <p className="text-gray-600 mt-1">Administra los pacientes y su información médica</p>
+              </div>
+            </div>
+            <PermissionGuard permission="crear_pacientes">
+              <Button
+                variant="success"
+                onClick={() => {
+                  resetForm();
+                  setShowCreateModal(true);
+                }}
+                icon={<UserPlus size={20} />}
+              >
+                Nuevo Paciente
+              </Button>
+            </PermissionGuard>
+          </div>
+        </div>
+      </div>
 
       {/* Estadísticas */}
       {estadisticas && (
-        <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Total Pacientes</p>
-            <p className="text-2xl font-bold text-teal-900">{estadisticas.totalPacientes}</p>
-          </div>
-          <div className="bg-green-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Activos</p>
-            <p className="text-2xl font-bold text-green-800">{estadisticas.pacientesActivos}</p>
-          </div>
-          <div className="bg-red-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Inactivos</p>
-            <p className="text-2xl font-bold text-red-800">{estadisticas.pacientesInactivos}</p>
-          </div>
-          <div className="bg-blue-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm flex items-center gap-1">
-              <Activity size={16} />
-              Tasa Actividad
-            </p>
-            <p className="text-2xl font-bold text-blue-800">
-              {estadisticas.totalPacientes > 0
-                ? Math.round((estadisticas.pacientesActivos / estadisticas.totalPacientes) * 100)
-                : 0}
-              %
-            </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Pacientes</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-1">{estadisticas.totalPacientes}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                    <Users size={24} className="text-primary-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pacientes Activos</p>
+                    <p className="text-3xl font-bold text-green-600 mt-1">{estadisticas.pacientesActivos}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <UserCheck size={24} className="text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pacientes Inactivos</p>
+                    <p className="text-3xl font-bold text-red-600 mt-1">{estadisticas.pacientesInactivos}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <UserX size={24} className="text-red-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Tasa de Actividad</p>
+                    <p className="text-3xl font-bold text-blue-600 mt-1">
+                      {estadisticas.totalPacientes > 0
+                        ? Math.round((estadisticas.pacientesActivos / estadisticas.totalPacientes) * 100)
+                        : 0}
+                      %
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <TrendingUp size={24} className="text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
 
-      <div className="flex-1 p-4">
-        {/* Filtros */}
-        <div className="mb-4 flex flex-wrap gap-4 items-center">
-          <div className="relative flex-1 min-w-[250px]">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Buscar por nombre, identificación, teléfono..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-zinc-100 rounded-lg p-2 pl-10 text-gray-950 w-full shadow-md text-sm"
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card>
+          <CardContent>
+            {/* Filtros */}
+            <div className="mb-6 flex flex-wrap gap-4">
+              <div className="flex-1 min-w-[250px]">
+                <Input
+                  variant="search"
+                  placeholder="Buscar por nombre, identificación, teléfono..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  clearable
+                  onClear={() => setSearch("")}
+                />
+              </div>
+              <div className="w-full sm:w-auto">
+                <select
+                  value={activoFilter}
+                  onChange={(e) => setActivoFilter(e.target.value)}
+                  className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="true">Activos</option>
+                  <option value="false">Inactivos</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Paginación */}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+
+            {/* Tabla de pacientes */}
+            <Table
+              columns={columns}
+              data={pacientes}
+              keyExtractor={(row) => row.id_paciente}
+              loading={loading}
+              striped
+              hoverable
+              emptyMessage="No hay pacientes disponibles"
             />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-950 text-lg"
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            )}
-          </div>
-
-          <select
-            value={activoFilter}
-            onChange={(e) => setActivoFilter(e.target.value)}
-            className="bg-zinc-100 text-black rounded-md p-2 shadow-sm text-sm"
-          >
-            <option value="">Todos los estados</option>
-            <option value="true">Activos</option>
-            <option value="false">Inactivos</option>
-          </select>
-        </div>
-
-        {/* Paginación */}
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-
-        {/* Tabla de pacientes */}
-        {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <LoadingSpinner size="lg" color="text-white" text="Cargando pacientes..." />
-          </div>
-        ) : (
-          <div className="overflow-x-auto shadow-lg rounded-lg">
-            <table className="min-w-full text-sm">
-              <thead className="p-3 border-b text-center text-white bg-teal-900">
-                <tr>
-                  <th className="p-2">Identificación</th>
-                  <th className="p-2">Nombres</th>
-                  <th className="p-2">Apellidos</th>
-                  <th className="p-2">Teléfono</th>
-                  <th className="p-2">Ciudad</th>
-                  <th className="p-2">EPS</th>
-                  <th className="p-2">Estado</th>
-                  <th className="p-2">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="bg-stone-200">
-                {pacientes.length > 0 ? (
-                  pacientes.map((paciente) => (
-                    <tr key={paciente.id_paciente} className="hover:bg-emerald-200">
-                      <td className="p-2 text-center">
-                        <div className="flex flex-col items-center">
-                          <span className="text-xs text-gray-600">{paciente.tipo_identificacion}</span>
-                          <span className="font-medium">{paciente.numero_identificacion}</span>
-                        </div>
-                      </td>
-                      <td className="p-2 text-center">{paciente.nombres}</td>
-                      <td className="p-2 text-center">{paciente.apellidos}</td>
-                      <td className="p-2 text-center">
-                        <FontAwesomeIcon icon={faPhone} className="mr-1 text-teal-600" />
-                        {paciente.telefono_principal}
-                      </td>
-                      <td className="p-2 text-center">{paciente.ciudad}</td>
-                      <td className="p-2 text-center">{paciente.eps || "N/A"}</td>
-                      <td className="p-2 text-center">
-                        {paciente.activo ? (
-                          <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-semibold">
-                            Activo
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-red-200 text-red-800 rounded-full text-xs font-semibold">
-                            Inactivo
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-2 text-center">
-                        <div className="flex justify-center gap-2 flex-wrap">
-                          <button
-                            onClick={() => handleOpenDetailsModal(paciente)}
-                            className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                            title="Ver detalles"
-                          >
-                            <FontAwesomeIcon icon={faEye} />
-                          </button>
-                          {paciente.activo ? (
-                            <>
-                              <PermissionGuard permission="editar_pacientes">
-                                <button
-                                  onClick={() => handleOpenEditModal(paciente)}
-                                  className="p-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
-                                  title="Editar"
-                                >
-                                  <FontAwesomeIcon icon={faEdit} />
-                                </button>
-                              </PermissionGuard>
-                              <PermissionGuard permission="eliminar_pacientes">
-                                <button
-                                  onClick={() => handleOpenDeleteModal(paciente)}
-                                  className="p-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-                                  title="Desactivar"
-                                >
-                                  <FontAwesomeIcon icon={faTrash} />
-                                </button>
-                              </PermissionGuard>
-                            </>
-                          ) : (
-                            <PermissionGuard permission="editar_pacientes">
-                              <button
-                                onClick={() => handleReactivarPaciente(paciente)}
-                                className="p-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-                                title="Reactivar"
-                              >
-                                <FontAwesomeIcon icon={faUserCheck} />
-                              </button>
-                            </PermissionGuard>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="text-center py-4 text-black">
-                      No hay pacientes disponibles
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modal de Crear/Editar Paciente */}
@@ -484,23 +522,23 @@ const Pacientes = () => {
         title={showCreateModal ? "Nuevo Paciente" : "Editar Paciente"}
         size="xl"
       >
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
           {/* Información de Identificación */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <FontAwesomeIcon icon={faIdCard} className="text-teal-600" />
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-gray-900">
+              <IdCard className="text-primary-600" size={20} />
               Información de Identificación
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tipo ID <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="tipo_identificacion"
                   value={formData.tipo_identificacion}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                 >
                   <option value="CC">Cédula de Ciudadanía</option>
                   <option value="TI">Tarjeta de Identidad</option>
@@ -510,26 +548,21 @@ const Pacientes = () => {
                   <option value="NIT">NIT</option>
                 </select>
               </div>
+              <Input
+                label="Número Identificación"
+                required
+                name="numero_identificacion"
+                value={formData.numero_identificacion}
+                onChange={handleInputChange}
+                placeholder="Número de documento"
+              />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Número Identificación <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="numero_identificacion"
-                  value={formData.numero_identificacion}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Género</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Género</label>
                 <select
                   name="genero"
                   value={formData.genero || ""}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                 >
                   <option value="">Seleccionar...</option>
                   <option value="Masculino">Masculino</option>
@@ -542,182 +575,134 @@ const Pacientes = () => {
 
           {/* Información Personal */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold mb-3">Información Personal</h3>
+            <h3 className="font-semibold mb-3 text-gray-900">Información Personal</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombres <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="nombres"
-                  value={formData.nombres}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Apellidos <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="apellidos"
-                  value={formData.apellidos}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Nacimiento</label>
-                <input
-                  type="date"
-                  name="fecha_nacimiento"
-                  value={formData.fecha_nacimiento || ""}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email || ""}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
+              <Input
+                label="Nombres"
+                required
+                name="nombres"
+                value={formData.nombres}
+                onChange={handleInputChange}
+                placeholder="Nombres completos"
+              />
+              <Input
+                label="Apellidos"
+                required
+                name="apellidos"
+                value={formData.apellidos}
+                onChange={handleInputChange}
+                placeholder="Apellidos completos"
+              />
+              <Input
+                label="Fecha Nacimiento"
+                type="date"
+                name="fecha_nacimiento"
+                value={formData.fecha_nacimiento || ""}
+                onChange={handleInputChange}
+              />
+              <Input
+                label="Email"
+                type="email"
+                name="email"
+                value={formData.email || ""}
+                onChange={handleInputChange}
+                placeholder="correo@ejemplo.com"
+              />
             </div>
           </div>
 
           {/* Información de Contacto */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <FontAwesomeIcon icon={faPhone} className="text-teal-600" />
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-gray-900">
+              <Phone className="text-primary-600" size={20} />
               Información de Contacto
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Teléfono Principal <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="telefono_principal"
-                  value={formData.telefono_principal}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono Secundario</label>
-                <input
-                  type="tel"
-                  name="telefono_secundario"
-                  value={formData.telefono_secundario || ""}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
+              <Input
+                label="Teléfono Principal"
+                required
+                type="tel"
+                name="telefono_principal"
+                value={formData.telefono_principal}
+                onChange={handleInputChange}
+                placeholder="Número principal"
+              />
+              <Input
+                label="Teléfono Secundario"
+                type="tel"
+                name="telefono_secundario"
+                value={formData.telefono_secundario || ""}
+                onChange={handleInputChange}
+                placeholder="Número alternativo"
+              />
             </div>
           </div>
 
           {/* Dirección */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <FontAwesomeIcon icon={faMapMarkerAlt} className="text-teal-600" />
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-gray-900">
+              <MapPin className="text-primary-600" size={20} />
               Dirección
             </h3>
             <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Dirección <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="direccion"
-                  value={formData.direccion}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  required
-                />
-              </div>
+              <Input
+                label="Dirección"
+                required
+                name="direccion"
+                value={formData.direccion}
+                onChange={handleInputChange}
+                placeholder="Dirección completa"
+              />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ciudad <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="ciudad"
-                    value={formData.ciudad}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Departamento <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="departamento"
-                    value={formData.departamento}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Código Postal</label>
-                  <input
-                    type="text"
-                    name="codigo_postal"
-                    value={formData.codigo_postal || ""}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Barrio</label>
-                <input
-                  type="text"
-                  name="barrio"
-                  value={formData.barrio || ""}
+                <Input
+                  label="Ciudad"
+                  required
+                  name="ciudad"
+                  value={formData.ciudad}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  placeholder="Ciudad"
+                />
+                <Input
+                  label="Departamento"
+                  required
+                  name="departamento"
+                  value={formData.departamento}
+                  onChange={handleInputChange}
+                  placeholder="Departamento"
+                />
+                <Input
+                  label="Código Postal"
+                  name="codigo_postal"
+                  value={formData.codigo_postal || ""}
+                  onChange={handleInputChange}
+                  placeholder="Código postal"
                 />
               </div>
+              <Input
+                label="Barrio"
+                name="barrio"
+                value={formData.barrio || ""}
+                onChange={handleInputChange}
+                placeholder="Barrio o localidad"
+              />
             </div>
           </div>
 
           {/* Información de Salud */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold mb-3">Información de Salud</h3>
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-gray-900">
+              <Activity className="text-primary-600" size={20} />
+              Información de Salud
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Input label="EPS" name="eps" value={formData.eps || ""} onChange={handleInputChange} placeholder="EPS del paciente" />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">EPS</label>
-                <input
-                  type="text"
-                  name="eps"
-                  value={formData.eps || ""}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo Afiliación</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo Afiliación</label>
                 <select
                   name="tipo_afiliacion"
                   value={formData.tipo_afiliacion || ""}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                 >
                   <option value="">Seleccionar...</option>
                   <option value="Contributivo">Contributivo</option>
@@ -730,33 +715,31 @@ const Pacientes = () => {
 
           {/* Observaciones */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
             <textarea
               name="observaciones"
               value={formData.observaciones || ""}
               onChange={handleInputChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               rows={3}
+              placeholder="Observaciones adicionales..."
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => {
               showCreateModal ? setShowCreateModal(false) : setShowEditModal(false);
               resetForm();
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cancelar
-          </button>
-          <button
-            onClick={showCreateModal ? handleCreatePaciente : handleEditPaciente}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
-          >
+          </Button>
+          <Button variant="success" onClick={showCreateModal ? handleCreatePaciente : handleEditPaciente} icon={<UserPlus size={20} />}>
             {showCreateModal ? "Crear Paciente" : "Guardar Cambios"}
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -778,21 +761,18 @@ const Pacientes = () => {
           ? El paciente no será eliminado, solo marcado como inactivo.
         </p>
         <div className="flex justify-end gap-3">
-          <button
+          <Button
+            variant="outline"
             onClick={() => {
               setShowDeleteModal(false);
               setSelectedPaciente(null);
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cancelar
-          </button>
-          <button
-            onClick={handleDeletePaciente}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-          >
+          </Button>
+          <Button variant="danger" onClick={handleDeletePaciente} icon={<Trash2 size={20} />}>
             Desactivar
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -810,7 +790,7 @@ const Pacientes = () => {
           <div className="space-y-4">
             {/* Información General */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold mb-3 text-teal-800">Información General</h3>
+              <h3 className="font-semibold mb-3 text-primary-800">Información General</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <span className="text-gray-600">Identificación:</span>
@@ -839,7 +819,7 @@ const Pacientes = () => {
 
             {/* Contacto */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold mb-3 text-teal-800">Contacto</h3>
+              <h3 className="font-semibold mb-3 text-primary-800">Contacto</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <span className="text-gray-600">Teléfono Principal:</span>
@@ -858,7 +838,7 @@ const Pacientes = () => {
 
             {/* Dirección */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold mb-3 text-teal-800">Dirección</h3>
+              <h3 className="font-semibold mb-3 text-primary-800">Dirección</h3>
               <div className="space-y-2 text-sm">
                 <p>
                   <span className="text-gray-600">Dirección:</span> {selectedPaciente.direccion}
@@ -884,7 +864,7 @@ const Pacientes = () => {
 
             {/* Información de Salud */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold mb-3 text-teal-800">Información de Salud</h3>
+              <h3 className="font-semibold mb-3 text-primary-800">Información de Salud</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <span className="text-gray-600">EPS:</span>
@@ -900,24 +880,18 @@ const Pacientes = () => {
             {/* Observaciones */}
             {selectedPaciente.observaciones && (
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold mb-2 text-teal-800">Observaciones</h3>
+                <h3 className="font-semibold mb-2 text-primary-800">Observaciones</h3>
                 <p className="text-sm text-gray-700">{selectedPaciente.observaciones}</p>
               </div>
             )}
 
             {/* Estado */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold mb-2 text-teal-800">Estado</h3>
+              <h3 className="font-semibold mb-2 text-primary-800">Estado</h3>
               <div className="flex items-center gap-3">
-                {selectedPaciente.activo ? (
-                  <span className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm font-semibold">
-                    Activo
-                  </span>
-                ) : (
-                  <span className="px-3 py-1 bg-red-200 text-red-800 rounded-full text-sm font-semibold">
-                    Inactivo
-                  </span>
-                )}
+                <Badge variant={selectedPaciente.activo ? "success" : "danger"}>
+                  {selectedPaciente.activo ? "Activo" : "Inactivo"}
+                </Badge>
                 <span className="text-xs text-gray-600">
                   Registrado: {new Date(selectedPaciente.createdAt).toLocaleDateString("es-CO")}
                 </span>
@@ -927,15 +901,15 @@ const Pacientes = () => {
         )}
 
         <div className="flex justify-end mt-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => {
               setShowDetailsModal(false);
               setSelectedPaciente(null);
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cerrar
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>

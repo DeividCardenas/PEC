@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes, faEdit, faTrash, faEye, faPlus, faCheck } from "@fortawesome/free-solid-svg-icons";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, Edit2, Trash2, Eye, X } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   fetchProveedores,
@@ -20,7 +18,11 @@ import {
 } from "../../services/Proveedores/proveedoresService";
 import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Badge from "../../components/Badge";
+import Table, { Column } from "../../components/Table";
+import Card, { CardContent } from "../../components/Card";
 
 const Proveedores = () => {
   const navigate = useNavigate();
@@ -278,150 +280,176 @@ const Proveedores = () => {
     setTransactionFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  return (
-    <div className="min-h-screen bg-sky-900 flex flex-col">
-      <header className="bg-sky-800 shadow-lg p-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate("/Menu")}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-sky-700"
-        >
-          <ArrowLeft size={24} className="mr-2" />
-          <span className="font-medium">Volver al Menú</span>
-        </button>
-        <h1 className="text-2xl font-bold text-white">Gestión de Proveedores</h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition-colors"
-        >
-          <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          Nuevo Proveedor
-        </button>
-      </header>
-
-      <div className="flex-1 p-4">
-        {/* Sección de filtros */}
-        <div className="mb-4 flex flex-wrap gap-4 items-center">
-          <div className="relative w-full sm:max-w-xs">
-            <input
-              type="text"
-              placeholder="Buscar por nombre, NIT, email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-zinc-100 rounded-lg p-2 text-gray-950 w-full shadow-md pr-8 text-sm"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-950 text-lg"
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            )}
-          </div>
-
-          <select
-            value={activoFilter}
-            onChange={(e) => setActivoFilter(e.target.value)}
-            className="bg-zinc-100 text-black rounded-md p-2 shadow-sm text-sm"
-          >
-            <option value="">Todos los proveedores</option>
-            <option value="true">Activos</option>
-            <option value="false">Inactivos</option>
-          </select>
+  // Definir columnas de la tabla de proveedores
+  const columns: Column<Proveedor>[] = [
+    { key: 'nombre', title: 'Nombre', align: 'left' },
+    { key: 'nit', title: 'NIT', align: 'center', render: (val) => val || '-' },
+    { key: 'titular', title: 'Titular', align: 'center', render: (val) => val || '-' },
+    { key: 'ciudad', title: 'Ciudad', align: 'center', render: (val) => val || '-' },
+    { key: 'telefono', title: 'Teléfono', align: 'center', render: (val) => val || '-' },
+    { key: 'email', title: 'Email', align: 'center', render: (val) => val || '-' },
+    {
+      key: 'activo',
+      title: 'Estado',
+      align: 'center',
+      render: (val) => (
+        <Badge variant={val ? 'success' : 'danger'}>
+          {val ? 'Activo' : 'Inactivo'}
+        </Badge>
+      )
+    },
+    {
+      key: '_count',
+      title: 'Transacciones',
+      align: 'center',
+      render: (val: any) => <Badge variant="info">{val?.transacciones || 0}</Badge>
+    },
+    {
+      key: 'id_proveedor',
+      title: 'Acciones',
+      align: 'center',
+      render: (_, row) => (
+        <div className="flex justify-center gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleOpenTransactionsModal(row)}
+            icon={<Eye size={16} />}
+            title="Ver transacciones"
+          />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleOpenEditModal(row)}
+            icon={<Edit2 size={16} />}
+            title="Editar"
+          />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleOpenDeleteModal(row)}
+            icon={<Trash2 size={16} className="text-red-600" />}
+            title="Eliminar"
+          />
         </div>
+      )
+    }
+  ];
 
-        {/* Paginación */}
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+  // Definir columnas de la tabla de transacciones
+  const transactionColumns: Column<Transaccion>[] = [
+    {
+      key: 'fecha_emision',
+      title: 'Fecha',
+      align: 'center',
+      render: (val) => new Date(val).toLocaleDateString("es-CO")
+    },
+    { key: 'tipo', title: 'Tipo', align: 'center', render: (val) => <span className="capitalize">{val}</span> },
+    { key: 'concepto', title: 'Concepto', align: 'left' },
+    {
+      key: 'monto',
+      title: 'Monto',
+      align: 'right',
+      render: (val) => new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+      }).format(Number(val))
+    },
+    {
+      key: 'estado',
+      title: 'Estado',
+      align: 'center',
+      render: (val) => (
+        <Badge variant={
+          val === 'completada' ? 'success' :
+          val === 'pendiente' ? 'warning' :
+          'danger'
+        }>
+          {val}
+        </Badge>
+      )
+    },
+    { key: 'numero_factura', title: 'N° Factura', align: 'center', render: (val) => val || '-' }
+  ];
 
-        {/* Tabla de proveedores */}
-        {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <LoadingSpinner size="lg" color="text-white" text="Cargando proveedores..." />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/Menu")}
+                icon={<ArrowLeft size={20} />}
+              >
+                Volver
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Gestión de Proveedores</h1>
+                <p className="text-gray-600 mt-1">Administra los proveedores y sus transacciones</p>
+              </div>
+            </div>
+            <Button
+              variant="success"
+              onClick={() => setShowCreateModal(true)}
+              icon={<Plus size={20} />}
+            >
+              Nuevo Proveedor
+            </Button>
           </div>
-        ) : (
-          <div className="overflow-x-auto shadow-lg rounded-lg">
-            <table className="min-w-full text-sm">
-              <thead className="p-3 border-b text-center text-white bg-indigo-900">
-                <tr>
-                  <th className="p-2">Nombre</th>
-                  <th className="p-2">NIT</th>
-                  <th className="p-2">Titular</th>
-                  <th className="p-2">Ciudad</th>
-                  <th className="p-2">Teléfono</th>
-                  <th className="p-2">Email</th>
-                  <th className="p-2">Estado</th>
-                  <th className="p-2">Transacciones</th>
-                  <th className="p-2">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="bg-stone-200">
-                {proveedores.length > 0 ? (
-                  proveedores.map((proveedor) => (
-                    <tr key={proveedor.id_proveedor} className="hover:bg-violet-300">
-                      <td className="p-2 text-center font-medium">{proveedor.nombre}</td>
-                      <td className="p-2 text-center">{proveedor.nit || "-"}</td>
-                      <td className="p-2 text-center">{proveedor.titular || "-"}</td>
-                      <td className="p-2 text-center">{proveedor.ciudad || "-"}</td>
-                      <td className="p-2 text-center">{proveedor.telefono || "-"}</td>
-                      <td className="p-2 text-center">{proveedor.email || "-"}</td>
-                      <td className="p-2 text-center">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            proveedor.activo
-                              ? "bg-green-200 text-green-800"
-                              : "bg-red-200 text-red-800"
-                          }`}
-                        >
-                          {proveedor.activo ? "Activo" : "Inactivo"}
-                        </span>
-                      </td>
-                      <td className="p-2 text-center">
-                        <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
-                          {proveedor._count?.transacciones || 0}
-                        </span>
-                      </td>
-                      <td className="p-2 text-center">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() => handleOpenTransactionsModal(proveedor)}
-                            className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                            title="Ver transacciones"
-                          >
-                            <FontAwesomeIcon icon={faEye} />
-                          </button>
-                          <button
-                            onClick={() => handleOpenEditModal(proveedor)}
-                            className="p-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors"
-                            title="Editar"
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </button>
-                          <button
-                            onClick={() => handleOpenDeleteModal(proveedor)}
-                            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-                            title="Eliminar"
-                          >
-                            <FontAwesomeIcon icon={faTrash} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={9} className="text-center py-4 text-black">
-                      No hay proveedores disponibles
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card>
+          <CardContent>
+            {/* Filtros */}
+            <div className="mb-6 flex flex-wrap gap-4">
+              <div className="flex-1 min-w-[250px]">
+                <Input
+                  variant="search"
+                  placeholder="Buscar por nombre, NIT, email..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  clearable
+                  onClear={() => setSearch("")}
+                />
+              </div>
+              <div className="w-full sm:w-auto">
+                <select
+                  value={activoFilter}
+                  onChange={(e) => setActivoFilter(e.target.value)}
+                  className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                >
+                  <option value="">Todos los proveedores</option>
+                  <option value="true">Activos</option>
+                  <option value="false">Inactivos</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Paginación */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+
+            {/* Tabla de proveedores */}
+            <Table
+              columns={columns}
+              data={proveedores}
+              keyExtractor={(row) => row.id_proveedor}
+              loading={loading}
+              striped
+              hoverable
+              emptyMessage="No hay proveedores disponibles"
+            />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modal de Crear Proveedor */}
@@ -435,137 +463,108 @@ const Proveedores = () => {
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.nombre}
-              onChange={(e) => handleFormChange("nombre", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
+          <Input
+            label="Nombre"
+            required
+            value={formData.nombre}
+            onChange={(e) => handleFormChange("nombre", e.target.value)}
+            placeholder="Nombre del proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">NIT</label>
-            <input
-              type="text"
-              value={formData.nit}
-              onChange={(e) => handleFormChange("nit", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="NIT"
+            value={formData.nit}
+            onChange={(e) => handleFormChange("nit", e.target.value)}
+            placeholder="NIT del proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Laboratorio</label>
-            <input
-              type="text"
-              value={formData.laboratorio}
-              onChange={(e) => handleFormChange("laboratorio", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Laboratorio"
+            value={formData.laboratorio}
+            onChange={(e) => handleFormChange("laboratorio", e.target.value)}
+            placeholder="Laboratorio asociado"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-            <input
-              type="text"
-              value={formData.tipo}
-              onChange={(e) => handleFormChange("tipo", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Tipo"
+            value={formData.tipo}
+            onChange={(e) => handleFormChange("tipo", e.target.value)}
+            placeholder="Tipo de proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Titular</label>
-            <input
-              type="text"
-              value={formData.titular}
-              onChange={(e) => handleFormChange("titular", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Titular"
+            value={formData.titular}
+            onChange={(e) => handleFormChange("titular", e.target.value)}
+            placeholder="Titular del proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-            <input
-              type="text"
-              value={formData.telefono}
-              onChange={(e) => handleFormChange("telefono", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Teléfono"
+            type="tel"
+            value={formData.telefono}
+            onChange={(e) => handleFormChange("telefono", e.target.value)}
+            placeholder="Número de teléfono"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleFormChange("email", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleFormChange("email", e.target.value)}
+            placeholder="correo@ejemplo.com"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
-            <input
-              type="text"
-              value={formData.ciudad}
-              onChange={(e) => handleFormChange("ciudad", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Ciudad"
+            value={formData.ciudad}
+            onChange={(e) => handleFormChange("ciudad", e.target.value)}
+            placeholder="Ciudad"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">País</label>
-            <input
-              type="text"
-              value={formData.pais}
-              onChange={(e) => handleFormChange("pais", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="País"
+            value={formData.pais}
+            onChange={(e) => handleFormChange("pais", e.target.value)}
+            placeholder="País"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-            <input
-              type="text"
-              value={formData.direccion}
-              onChange={(e) => handleFormChange("direccion", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Dirección"
+            value={formData.direccion}
+            onChange={(e) => handleFormChange("direccion", e.target.value)}
+            placeholder="Dirección completa"
+          />
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
             <textarea
               value={formData.notas}
               onChange={(e) => handleFormChange("notas", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               rows={3}
+              placeholder="Notas adicionales..."
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => {
               setShowCreateModal(false);
               resetFormData();
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="success"
             onClick={handleCreateProveedor}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+            icon={<Plus size={20} />}
           >
-            <FontAwesomeIcon icon={faCheck} className="mr-2" />
-            Crear
-          </button>
+            Crear Proveedor
+          </Button>
         </div>
       </Modal>
 
@@ -581,138 +580,109 @@ const Proveedores = () => {
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.nombre}
-              onChange={(e) => handleFormChange("nombre", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
+          <Input
+            label="Nombre"
+            required
+            value={formData.nombre}
+            onChange={(e) => handleFormChange("nombre", e.target.value)}
+            placeholder="Nombre del proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">NIT</label>
-            <input
-              type="text"
-              value={formData.nit}
-              onChange={(e) => handleFormChange("nit", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="NIT"
+            value={formData.nit}
+            onChange={(e) => handleFormChange("nit", e.target.value)}
+            placeholder="NIT del proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Laboratorio</label>
-            <input
-              type="text"
-              value={formData.laboratorio}
-              onChange={(e) => handleFormChange("laboratorio", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Laboratorio"
+            value={formData.laboratorio}
+            onChange={(e) => handleFormChange("laboratorio", e.target.value)}
+            placeholder="Laboratorio asociado"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-            <input
-              type="text"
-              value={formData.tipo}
-              onChange={(e) => handleFormChange("tipo", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Tipo"
+            value={formData.tipo}
+            onChange={(e) => handleFormChange("tipo", e.target.value)}
+            placeholder="Tipo de proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Titular</label>
-            <input
-              type="text"
-              value={formData.titular}
-              onChange={(e) => handleFormChange("titular", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Titular"
+            value={formData.titular}
+            onChange={(e) => handleFormChange("titular", e.target.value)}
+            placeholder="Titular del proveedor"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-            <input
-              type="text"
-              value={formData.telefono}
-              onChange={(e) => handleFormChange("telefono", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Teléfono"
+            type="tel"
+            value={formData.telefono}
+            onChange={(e) => handleFormChange("telefono", e.target.value)}
+            placeholder="Número de teléfono"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleFormChange("email", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleFormChange("email", e.target.value)}
+            placeholder="correo@ejemplo.com"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
-            <input
-              type="text"
-              value={formData.ciudad}
-              onChange={(e) => handleFormChange("ciudad", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Ciudad"
+            value={formData.ciudad}
+            onChange={(e) => handleFormChange("ciudad", e.target.value)}
+            placeholder="Ciudad"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">País</label>
-            <input
-              type="text"
-              value={formData.pais}
-              onChange={(e) => handleFormChange("pais", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="País"
+            value={formData.pais}
+            onChange={(e) => handleFormChange("pais", e.target.value)}
+            placeholder="País"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-            <input
-              type="text"
-              value={formData.direccion}
-              onChange={(e) => handleFormChange("direccion", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+          <Input
+            label="Dirección"
+            value={formData.direccion}
+            onChange={(e) => handleFormChange("direccion", e.target.value)}
+            placeholder="Dirección completa"
+          />
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
             <textarea
               value={formData.notas}
               onChange={(e) => handleFormChange("notas", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               rows={3}
+              placeholder="Notas adicionales..."
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => {
               setShowEditModal(false);
               resetFormData();
               setSelectedProveedor(null);
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleEditProveedor}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            icon={<Edit2 size={20} />}
           >
-            <FontAwesomeIcon icon={faCheck} className="mr-2" />
             Guardar Cambios
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -731,22 +701,22 @@ const Proveedores = () => {
           acción no se puede deshacer.
         </p>
         <div className="flex justify-end gap-3">
-          <button
+          <Button
+            variant="outline"
             onClick={() => {
               setShowDeleteModal(false);
               setSelectedProveedor(null);
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="danger"
             onClick={handleDeleteProveedor}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+            icon={<Trash2 size={20} />}
           >
-            <FontAwesomeIcon icon={faTrash} className="mr-2" />
             Eliminar
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -762,67 +732,24 @@ const Proveedores = () => {
         size="xl"
       >
         <div className="mb-4">
-          <button
+          <Button
+            variant="success"
             onClick={handleOpenCreateTransactionModal}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+            icon={<Plus size={20} />}
           >
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Nueva Transacción
-          </button>
+          </Button>
         </div>
 
-        <div className="overflow-x-auto mb-4">
-          <table className="min-w-full text-sm">
-            <thead className="bg-indigo-900 text-white">
-              <tr>
-                <th className="p-2">Fecha</th>
-                <th className="p-2">Tipo</th>
-                <th className="p-2">Concepto</th>
-                <th className="p-2">Monto</th>
-                <th className="p-2">Estado</th>
-                <th className="p-2">Factura</th>
-              </tr>
-            </thead>
-            <tbody className="bg-stone-100">
-              {transacciones.length > 0 ? (
-                transacciones.map((transaccion) => (
-                  <tr key={transaccion.id_transaccion} className="hover:bg-violet-200">
-                    <td className="p-2 text-center">
-                      {new Date(transaccion.fecha_emision).toLocaleDateString("es-CO")}
-                    </td>
-                    <td className="p-2 text-center capitalize">{transaccion.tipo}</td>
-                    <td className="p-2 text-center">{transaccion.concepto}</td>
-                    <td className="p-2 text-center">
-                      {new Intl.NumberFormat("es-CO", {
-                        style: "currency",
-                        currency: "COP",
-                      }).format(Number(transaccion.monto))}
-                    </td>
-                    <td className="p-2 text-center">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          transaccion.estado === "completada"
-                            ? "bg-green-200 text-green-800"
-                            : transaccion.estado === "pendiente"
-                            ? "bg-yellow-200 text-yellow-800"
-                            : "bg-red-200 text-red-800"
-                        }`}
-                      >
-                        {transaccion.estado}
-                      </span>
-                    </td>
-                    <td className="p-2 text-center">{transaccion.numero_factura || "-"}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="text-center py-4">
-                    No hay transacciones registradas
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="mb-4">
+          <Table
+            columns={transactionColumns}
+            data={transacciones}
+            keyExtractor={(row) => row.id_transaccion}
+            striped
+            hoverable
+            emptyMessage="No hay transacciones registradas"
+          />
         </div>
 
         <Pagination
@@ -831,17 +758,17 @@ const Proveedores = () => {
           onPageChange={setTransaccionesPage}
         />
 
-        <div className="mt-4 flex justify-end">
-          <button
+        <div className="mt-6 flex justify-end">
+          <Button
+            variant="outline"
             onClick={() => {
               setShowTransactionsModal(false);
               setSelectedProveedor(null);
               setTransacciones([]);
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cerrar
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -857,13 +784,13 @@ const Proveedores = () => {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Tipo <span className="text-red-500">*</span>
             </label>
             <select
               value={transactionFormData.tipo}
               onChange={(e) => handleTransactionFormChange("tipo", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
             >
               <option value="compra">Compra</option>
               <option value="devolucion">Devolución</option>
@@ -871,83 +798,62 @@ const Proveedores = () => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Monto <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={transactionFormData.monto}
-              onChange={(e) => handleTransactionFormChange("monto", parseFloat(e.target.value))}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              min="0"
-              step="0.01"
-              required
-            />
-          </div>
+          <Input
+            label="Monto"
+            required
+            type="number"
+            value={transactionFormData.monto.toString()}
+            onChange={(e) => handleTransactionFormChange("monto", parseFloat(e.target.value))}
+            placeholder="0.00"
+          />
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Concepto <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
+            <Input
+              label="Concepto"
+              required
               value={transactionFormData.concepto}
               onChange={(e) => handleTransactionFormChange("concepto", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              required
+              placeholder="Descripción de la transacción"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
-            <input
-              type="number"
-              value={transactionFormData.cantidad || ""}
-              onChange={(e) =>
-                handleTransactionFormChange("cantidad", e.target.value ? parseInt(e.target.value) : undefined)
-              }
-              className="w-full p-2 border border-gray-300 rounded-md"
-              min="0"
-            />
-          </div>
+          <Input
+            label="Cantidad"
+            type="number"
+            value={transactionFormData.cantidad?.toString() || ""}
+            onChange={(e) =>
+              handleTransactionFormChange("cantidad", e.target.value ? parseInt(e.target.value) : undefined)
+            }
+            placeholder="Cantidad de items"
+          />
+
+          <Input
+            label="N° Factura"
+            value={transactionFormData.numero_factura}
+            onChange={(e) => handleTransactionFormChange("numero_factura", e.target.value)}
+            placeholder="Número de factura"
+          />
+
+          <Input
+            label="Fecha Emisión"
+            type="date"
+            value={transactionFormData.fecha_emision}
+            onChange={(e) => handleTransactionFormChange("fecha_emision", e.target.value)}
+          />
+
+          <Input
+            label="Fecha Vencimiento"
+            type="date"
+            value={transactionFormData.fecha_vencimiento}
+            onChange={(e) => handleTransactionFormChange("fecha_vencimiento", e.target.value)}
+          />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">N° Factura</label>
-            <input
-              type="text"
-              value={transactionFormData.numero_factura}
-              onChange={(e) => handleTransactionFormChange("numero_factura", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Emisión</label>
-            <input
-              type="date"
-              value={transactionFormData.fecha_emision}
-              onChange={(e) => handleTransactionFormChange("fecha_emision", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Vencimiento</label>
-            <input
-              type="date"
-              value={transactionFormData.fecha_vencimiento}
-              onChange={(e) => handleTransactionFormChange("fecha_vencimiento", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
             <select
               value={transactionFormData.estado}
               onChange={(e) => handleTransactionFormChange("estado", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
             >
               <option value="pendiente">Pendiente</option>
               <option value="completada">Completada</option>
@@ -956,33 +862,34 @@ const Proveedores = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
             <textarea
               value={transactionFormData.notas}
               onChange={(e) => handleTransactionFormChange("notas", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
               rows={3}
+              placeholder="Notas adicionales..."
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => {
               setShowCreateTransactionModal(false);
               resetTransactionFormData();
             }}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="success"
             onClick={handleCreateTransaccion}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+            icon={<Plus size={20} />}
           >
-            <FontAwesomeIcon icon={faCheck} className="mr-2" />
             Crear Transacción
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>
