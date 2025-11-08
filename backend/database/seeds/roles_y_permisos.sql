@@ -106,6 +106,15 @@ INSERT INTO Permiso (nombre, fecha_creacion, fecha_actualizacion) VALUES
 ('gestionar_rutas', NOW(), NOW()),
 ('cancelar_rutas', NOW(), NOW()),
 
+-- Módulo: Seguimiento en Tiempo Real (RF010)
+('ver_seguimiento', NOW(), NOW()),
+('actualizar_ubicacion', NOW(), NOW()),
+
+-- Módulo: Prueba de Entrega Digital (RF010)
+('registrar_prueba_entrega', NOW(), NOW()),
+('ver_prueba_entrega', NOW(), NOW()),
+('gestionar_entregas', NOW(), NOW()),
+
 -- Módulo: Tarifarios (ya existentes, pero los agregamos por completitud)
 ('ver_tarifarios', NOW(), NOW()),
 ('crear_tarifarios', NOW(), NOW()),
@@ -185,7 +194,10 @@ WHERE nombre IN (
     'ver_entregas', 'crear_entregas', 'editar_entregas', 'despachar_entregas', 'cancelar_entregas',
     -- Domiciliarios y Rutas (RF009)
     'ver_domiciliarios', 'crear_domiciliarios', 'editar_domiciliarios',
-    'ver_rutas', 'crear_rutas', 'asignar_rutas', 'gestionar_rutas', 'cancelar_rutas'
+    'ver_rutas', 'crear_rutas', 'asignar_rutas', 'gestionar_rutas', 'cancelar_rutas',
+    -- Seguimiento y Prueba de Entrega (RF010)
+    'ver_seguimiento', 'actualizar_ubicacion',
+    'registrar_prueba_entrega', 'ver_prueba_entrega', 'gestionar_entregas'
 )
 ON DUPLICATE KEY UPDATE fecha_actualizacion = NOW();
 

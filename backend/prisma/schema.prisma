@@ -395,6 +395,14 @@ model Entrega {
   id_ruta                  Int?     @map("ruta_id")                                  // Ruta a la que pertenece (opcional)
   orden_en_ruta            Int?                                                      // Orden de entrega dentro de la ruta
 
+  // Prueba de Entrega Digital (RF010)
+  firma_entrega            String?  @db.VarChar(255)                                 // Ruta del archivo de firma digital
+  foto_entrega             String?  @db.VarChar(255)                                 // Ruta del archivo de foto de evidencia
+  nombre_receptor          String?  @db.VarChar(200)                                 // Nombre de quien recibe
+  identificacion_receptor  String?  @db.VarChar(50)                                  // Identificación de quien recibe
+  observaciones_entrega    String?  @db.Text                                         // Observaciones del domiciliario al entregar
+  fecha_confirmacion_entrega DateTime?                                               // Fecha/hora de confirmación de entrega
+
   // Relaciones
   paciente                 Paciente @relation(fields: [id_paciente], references: [id_paciente])
   usuario_creador          Usuario  @relation("EntregasCreadas", fields: [id_usuario_creador], references: [id_usuario])
@@ -454,6 +462,11 @@ model Domiciliario {
   activo              Boolean  @default(true)                                          // Si está activo
   disponible          Boolean  @default(true)                                          // Si está disponible para asignación
 
+  // Seguimiento en Tiempo Real (RF010)
+  latitud_actual      Decimal? @db.Decimal(10, 8)                                     // Latitud actual (GPS)
+  longitud_actual     Decimal? @db.Decimal(11, 8)                                     // Longitud actual (GPS)
+  ultima_actualizacion_ubicacion DateTime?                                            // Última actualización de ubicación
+
   // Observaciones
   observaciones       String?  @db.Text                                                // Observaciones adicionales
 
@@ -492,6 +505,7 @@ model Ruta {
 
   // Observaciones
   observaciones       String?  @db.Text                                                // Observaciones de la ruta
+  motivo_cancelacion  String?  @db.Text                                                // Motivo de cancelación (si aplica)
 
   // Control
   activo              Boolean  @default(true)                                          // Soft delete
