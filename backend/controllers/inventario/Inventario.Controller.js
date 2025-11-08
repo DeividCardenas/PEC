@@ -37,54 +37,50 @@ const ObtenerAlertasStockBajo = async (req, res) => {
     const limiteNum = Math.max(1, Math.min(100, parseInt(limite)));
     const skip = (paginaNum - 1) * limiteNum;
 
-    // Productos donde stock_actual <= stock_minimo
-    const whereCondition = {
-      OR: [
-        {
-          stock_actual: {
-            lte: prisma.producto.fields.stock_minimo,
-          },
-        },
-      ],
-    };
+    // Usar queryRaw para comparar dos columnas (stock_actual <= stock_minimo)
+    const productos = await prisma.$queryRaw`
+      SELECT
+        p.id_producto,
+        p.cum,
+        p.descripcion,
+        p.concentracion,
+        p.presentacion,
+        p.stock_actual,
+        p.stock_minimo,
+        p.stock_maximo,
+        p.unidad_medida,
+        p.precio_unidad,
+        p.id_laboratorio,
+        l.nombre as laboratorio_nombre
+      FROM producto p
+      LEFT JOIN laboratorio l ON p.id_laboratorio = l.id_laboratorio
+      WHERE p.stock_actual <= p.stock_minimo
+      ORDER BY p.${prisma.raw(ordenar_por)} ${prisma.raw(orden)}
+      LIMIT ${limiteNum} OFFSET ${skip}
+    `;
 
-    const [productos, total] = await Promise.all([
-      prisma.producto.findMany({
-        where: {
-          stock_actual: {
-            lte: prisma.producto.fields.stock_minimo,
-          },
-        },
-        include: {
-          laboratorio: {
-            select: {
-              id_laboratorio: true,
-              nombre: true,
-            },
-          },
-        },
-        orderBy: {
-          [ordenar_por]: orden,
-        },
-        skip,
-        take: limiteNum,
-      }),
-      prisma.producto.count({
-        where: {
-          stock_actual: {
-            lte: prisma.producto.fields.stock_minimo,
-          },
-        },
-      }),
-    ]);
+    const totalResult = await prisma.$queryRaw`
+      SELECT COUNT(*) as total
+      FROM producto
+      WHERE stock_actual <= stock_minimo
+    `;
+    const total = Number(totalResult[0]?.total || 0);
 
-    // Calcular déficit para cada producto
+    // Calcular déficit para cada producto y formatear
     const productosConDeficit = productos.map((producto) => ({
       ...producto,
-      deficit: Math.max(0, producto.stock_minimo - producto.stock_actual),
+      id_producto: Number(producto.id_producto),
+      stock_actual: Number(producto.stock_actual) || 0,
+      stock_minimo: Number(producto.stock_minimo) || 0,
+      stock_maximo: Number(producto.stock_maximo) || 0,
+      laboratorio: producto.laboratorio_nombre ? {
+        id_laboratorio: Number(producto.id_laboratorio),
+        nombre: producto.laboratorio_nombre
+      } : null,
+      deficit: Math.max(0, Number(producto.stock_minimo) - Number(producto.stock_actual)),
       porcentaje_stock:
-        producto.stock_minimo > 0
-          ? Math.round((producto.stock_actual / producto.stock_minimo) * 100)
+        Number(producto.stock_minimo) > 0
+          ? Math.round((Number(producto.stock_actual) / Number(producto.stock_minimo)) * 100)
           : 0,
     }));
 
@@ -411,7 +407,6 @@ const ObtenerEstadisticasInventario = async (req, res) => {
       totalProductos,
       productosConStock,
       productosSinStock,
-      productosStockBajo,
       valorTotalInventario,
       movimientosHoy,
     ] = await Promise.all([
@@ -428,13 +423,6 @@ const ObtenerEstadisticasInventario = async (req, res) => {
           stock_actual: 0,
         },
       }),
-      prisma.producto.count({
-        where: {
-          stock_actual: {
-            lte: prisma.producto.fields.stock_minimo,
-          },
-        },
-      }),
       prisma.producto.aggregate({
         _sum: {
           stock_actual: true,
@@ -448,6 +436,14 @@ const ObtenerEstadisticasInventario = async (req, res) => {
         },
       }),
     ]);
+
+    // Obtener productos con stock bajo usando queryRaw
+    const productosStockBajoResult = await prisma.$queryRaw`
+      SELECT COUNT(*) as total
+      FROM producto
+      WHERE stock_actual <= stock_minimo
+    `;
+    const productosStockBajo = Number(productosStockBajoResult[0]?.total || 0);
 
     // Obtener productos más movidos (últimos 30 días)
     const fechaInicio = new Date();
