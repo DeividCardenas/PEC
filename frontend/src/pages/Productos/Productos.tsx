@@ -96,11 +96,11 @@ const Productos = () => {
   }, [fetchProductosData]);
 
   return (
-    <div className="min-h-screen bg-sky-900 flex flex-col">
-      <header className="bg-sky-800 shadow-lg p-4 flex items-center">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
+      <header className="bg-primary-900 border-b border-primary-800 shadow-lg p-4 flex items-center">
         <button
           onClick={() => navigate('/Menu')}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-sky-700"
+          className="flex items-center text-white hover:text-primary-300 transition-colors px-4 py-2 rounded-lg hover:bg-primary-800"
         >
           <ArrowLeft size={24} className="mr-2" />
           <span className="font-medium">Volver al Menú</span>
@@ -115,12 +115,12 @@ const Productos = () => {
               placeholder="Buscar productos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-zinc-100 rounded-lg p-2 text-gray-950 w-full shadow-md pr-8 text-sm"
+              className="bg-dark-bg-secondary border border-dark-border rounded-lg p-2 text-dark-text w-full shadow-md pr-8 text-sm placeholder:text-dark-text-muted focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-950 text-lg"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-dark-text-secondary hover:text-dark-text text-lg"
               >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
@@ -130,7 +130,7 @@ const Productos = () => {
         <select
           value={selectedFilter}
           onChange={(e) => setSelectedFilter(e.target.value)}
-          className="bg-zinc-100 text-black rounded-md p-2 shadow-sm text-sm"
+          className="bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md p-2 shadow-sm text-sm focus:ring-2 focus:ring-primary-500"
         >
           <option value="">Filtro</option>
           <option value="descripcion">Descripción</option>
@@ -143,7 +143,7 @@ const Productos = () => {
           <select
             value={selectedFilterRegulacion}
             onChange={(e) => setSelectedFilterRegulacion(e.target.value)}
-            className="bg-zinc-100 text-black rounded-md p-2 shadow-sm text-sm"
+            className="bg-dark-bg-secondary border border-dark-border text-dark-text rounded-md p-2 shadow-sm text-sm focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Filtrar por Regulación</option>
             <option value="regulados">Productos regulados</option>
@@ -154,7 +154,7 @@ const Productos = () => {
         {/* Botón para abrir el modal de selección de columnas */}
         <button
           onClick={() => setShowColumnSelector(true)}
-          className="px-4 py-2 rounded-lg bg-indigo-900 hover:bg-indigo-700 text-white shadow-md"
+          className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white shadow-md"
         >
           Seleccionar columnas
         </button>
@@ -170,12 +170,12 @@ const Productos = () => {
       {/* Tabla de productos */}
       {loading ? (
         <div className="flex justify-center items-center py-8">
-          <LoadingSpinner size="lg" color="text-white" text="Cargando productos..." />
+          <LoadingSpinner size="lg" color="text-primary-500" text="Cargando productos..." />
         </div>
       ) : (
-        <div className="overflow-x-auto shadow-lg rounded-lg">
+        <div className="overflow-x-auto shadow-lg rounded-lg border border-dark-border">
           <table className="min-w-full text-sm">
-            <thead className="p-3 border-b text-center text-white bg-indigo-900">
+            <thead className="p-3 border-b border-dark-border text-center text-white bg-primary-900/50">
               <tr>
                 <th className="p-2">CUM</th>
                 <th className="p-2">Descripción</th>
@@ -194,10 +194,10 @@ const Productos = () => {
                 {selectedExtraFields.includes("codigo_barras") && <th className="p-2">Código de Barras</th>}
               </tr>
             </thead>
-            <tbody className="bg-stone-200">
+            <tbody className="bg-dark-card text-dark-text">
               {productos.length > 0 ? (
                 productos.map((producto) => (
-                  <tr key={producto.id_producto} className="hover:bg-violet-300">
+                  <tr key={producto.id_producto} className="border-b border-dark-border hover:bg-dark-card-hover transition-colors">
                     <td className="p-2 text-center">{producto.cum}</td>
                     <td className="p-2 text-center">{producto.descripcion}</td>
                     {selectedExtraFields.includes("presentacion") && (
@@ -260,7 +260,7 @@ const Productos = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9 + selectedExtraFields.length} className="text-center py-4 text-black">
+                  <td colSpan={9 + selectedExtraFields.length} className="text-center py-4 text-dark-text-secondary">
                     No hay productos disponibles
                   </td>
                 </tr>
@@ -285,22 +285,22 @@ const Productos = () => {
                 type="checkbox"
                 checked={tempSelectedExtraFields.includes(item.field)}
                 onChange={() => toggleTempExtraField(item.field)}
-                className="mr-2 w-4 h-4"
+                className="mr-2 w-4 h-4 accent-primary-600"
               />
-              <span className="text-gray-700">{item.label}</span>
+              <span className="text-dark-text">{item.label}</span>
             </label>
           ))}
         </div>
         <div className="mt-6 flex justify-end gap-4">
           <button
             onClick={handleCancelColumnSelection}
-            className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black transition-colors"
+            className="px-4 py-2 rounded bg-dark-bg-secondary hover:bg-dark-bg-tertiary text-dark-text border border-dark-border transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleApplyColumnSelection}
-            className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+            className="px-4 py-2 rounded bg-primary-600 hover:bg-primary-700 text-white transition-colors shadow-md"
           >
             Aplicar
           </button>

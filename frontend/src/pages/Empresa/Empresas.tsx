@@ -66,11 +66,11 @@ const EmpresasPage = () => {
   }, [labPage, detailSearch, selectedEmpresa]);
 
   return (
-    <div className="min-h-screen bg-sky-900 flex flex-col">
-      <header className="bg-sky-800 shadow-lg p-4 flex items-center">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
+      <header className="bg-primary-900 border-b border-primary-800 shadow-lg p-4 flex items-center">
         <button
           onClick={() => navigate('/Menu')}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-sky-700"
+          className="flex items-center text-white hover:text-primary-300 transition-colors px-4 py-2 rounded-lg hover:bg-primary-800"
         >
           <ArrowLeft size={24} className="mr-2" />
           <span className="font-medium">Volver al Menú</span>
@@ -78,7 +78,7 @@ const EmpresasPage = () => {
       </header>
       <div className="flex-1 p-6">
         <motion.h1
-          className="text-3xl font-bold text-white mb-6 text-center"
+          className="text-3xl font-bold text-dark-text mb-6 text-center"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -87,7 +87,7 @@ const EmpresasPage = () => {
         </motion.h1>
 
       {loading ? (
-        <div className="text-center text-white">Cargando...</div>
+        <div className="text-center text-dark-text">Cargando...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
@@ -99,19 +99,19 @@ const EmpresasPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   whileHover={{ scale: 1.05 }}
-                  className="bg-white p-4 rounded-2xl shadow-xl"
+                  className="bg-dark-card border border-dark-border p-4 rounded-2xl shadow-xl"
                 >
-                  <h2 className="text-xl font-bold text-indigo-900 text-center mb-2">{empresa.nombre}</h2>
-                  <div className="flex justify-between items-center mt-4">
+                  <h2 className="text-xl font-bold text-dark-text text-center mb-2">{empresa.nombre}</h2>
+                  <div className="flex justify-between items-center mt-4 gap-2">
                     <button
                       onClick={() => handleSelectLaboratorios(empresa)}
-                      className="bg-indigo-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg shadow"
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg shadow flex-1"
                     >
                       Ver Laboratorios
                     </button>
                     <button
                       onClick={() => handleSelectTarifarios(empresa)}
-                      className="bg-green-600 hover:bg-green-800 text-white px-4 py-2 rounded-lg shadow"
+                      className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg shadow flex-1"
                     >
                       Ver Tarifarios
                     </button>
@@ -120,7 +120,7 @@ const EmpresasPage = () => {
                 </motion.div>
               ))
             ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full text-center py-4 text-white">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full text-center py-4 text-dark-text-secondary">
                 No hay empresas disponibles
               </motion.div>
             )}
@@ -141,7 +141,7 @@ const EmpresasPage = () => {
             onClick={() => setSelectedEmpresa(null)}
           >
             <motion.div
-              className="bg-sky-900 p-6 shadow-lg rounded-2xl max-w-4xl w-full"
+              className="bg-dark-card border border-dark-border p-6 shadow-lg rounded-2xl max-w-4xl w-full"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
@@ -151,12 +151,12 @@ const EmpresasPage = () => {
               <div className="flex justify-between items-center mb-6">
                 <button
                   onClick={() => setSelectedEmpresa(null)}
-                  className="text-white bg-indigo-700 hover:bg-indigo-600 rounded px-3 py-1 font-semibold"
+                  className="text-white bg-primary-600 hover:bg-primary-700 rounded px-3 py-1 font-semibold"
                 >
                   Volver
                 </button>
-                <h2 className="text-2xl font-bold text-white">Laboratorios de {selectedEmpresa.nombre}</h2>
-                <button onClick={() => setSelectedEmpresa(null)} className="text-gray-500 hover:text-gray-800">
+                <h2 className="text-2xl font-bold text-dark-text">Laboratorios de {selectedEmpresa.nombre}</h2>
+                <button onClick={() => setSelectedEmpresa(null)} className="text-dark-text-secondary hover:text-dark-text">
                   <X size={24} />
                 </button>
               </div>
@@ -165,7 +165,7 @@ const EmpresasPage = () => {
                 placeholder="Buscar laboratorios..."
                 value={detailSearch}
                 onChange={(e) => setDetailSearch(e.target.value)}
-                className="bg-zinc-100 p-2 rounded-lg w-full mb-4"
+                className="bg-dark-bg-secondary border border-dark-border text-dark-text p-2 rounded-lg w-full mb-4 placeholder:text-dark-text-muted focus:ring-2 focus:ring-primary-500"
               />
               <AnimatePresence mode="wait">
                 <motion.div
@@ -188,9 +188,9 @@ const EmpresasPage = () => {
                       whileTap={{ scale: 0.95 }}
                     >
                       <Link to={`/laboratorio/${lab.id_laboratorio}`}>
-                        <motion.div className="bg-white p-6 rounded-xl shadow-xl hover:shadow-2xl transform transition-all cursor-pointer">
-                          <FlaskConical className="text-indigo-900" size={32} />
-                          <h4 className="text-gray-900 font-semibold text-lg">{lab.nombre}</h4>
+                        <motion.div className="bg-dark-bg-secondary border border-dark-border p-6 rounded-xl shadow-xl hover:shadow-2xl hover:bg-dark-card-hover transform transition-all cursor-pointer">
+                          <FlaskConical className="text-primary-500" size={32} />
+                          <h4 className="text-dark-text font-semibold text-lg">{lab.nombre}</h4>
                         </motion.div>
                       </Link>
                     </motion.div>
@@ -203,7 +203,7 @@ const EmpresasPage = () => {
                   whileHover={{ scale: labPage > 1 ? 1.1 : 1 }}
                   onClick={() => setLabPage((prev) => Math.max(prev - 1, 1))}
                   disabled={labPage === 1}
-                  className={`p-2 rounded-full transition-all ${labPage === 1 ? "text-gray-400 cursor-not-allowed" : "text-white hover:bg-gray-700"
+                  className={`p-2 rounded-full transition-all ${labPage === 1 ? "text-dark-text-muted cursor-not-allowed" : "text-dark-text hover:bg-dark-bg-secondary"
                     }`}
                 >
                   <ChevronLeft size={28} />
@@ -215,7 +215,7 @@ const EmpresasPage = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.3 }}
-                  className="text-lg font-semibold text-white"
+                  className="text-lg font-semibold text-dark-text"
                 >
                   Página {labPage} de {totalPages}
                 </motion.span>
@@ -225,7 +225,7 @@ const EmpresasPage = () => {
                   whileHover={{ scale: labPage < totalPages ? 1.1 : 1 }}
                   onClick={() => setLabPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={labPage === totalPages}
-                  className={`p-2 rounded-full transition-all ${labPage === totalPages ? "text-gray-400 cursor-not-allowed" : "text-white hover:bg-gray-700"
+                  className={`p-2 rounded-full transition-all ${labPage === totalPages ? "text-dark-text-muted cursor-not-allowed" : "text-dark-text hover:bg-dark-bg-secondary"
                     }`}
                 >
                   <ChevronRight size={28} />
@@ -248,7 +248,7 @@ const EmpresasPage = () => {
             onClick={() => setActiveModal(null)}
           >
             <motion.div
-              className="bg-sky-900 p-8 shadow-2xl rounded-3xl max-w-6xl w-full relative"
+              className="bg-dark-card border border-dark-border p-8 shadow-2xl rounded-3xl max-w-6xl w-full relative"
               initial={{ scale: 0.8, y: 50, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.8, y: 50, opacity: 0 }}
@@ -256,12 +256,12 @@ const EmpresasPage = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-white">
+                <h2 className="text-3xl font-bold text-dark-text">
                   Tarifarios de {selectedEmpresa.nombre}
                 </h2>
                 <button
                   onClick={() => setActiveModal(null)}
-                  className="text-gray-300 hover:text-gray-100 transition"
+                  className="text-dark-text-secondary hover:text-dark-text transition"
                 >
                   <X size={28} />
                 </button>
@@ -270,7 +270,7 @@ const EmpresasPage = () => {
                 {selectedEmpresa.tarifarios.map((tarifa, index) => (
                   <motion.div
                     key={tarifa.id_tarifario}
-                    className="bg-sky-700 p-4 rounded-xl shadow-md cursor-pointer hover:shadow-lg hover:bg-sky-600"
+                    className="bg-dark-bg-secondary border border-dark-border p-4 rounded-xl shadow-md cursor-pointer hover:shadow-lg hover:bg-dark-card-hover"
                     initial={{ opacity: 0, y: 30, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -278,7 +278,7 @@ const EmpresasPage = () => {
                     transition={{ duration: 0.3, ease: 'easeOut', delay: index * 0.05 }}
                     onClick={() => navigate(`/tarifario/${tarifa.id_tarifario}`)}
                   >
-                    <h4 className="text-xl font-semibold text-white mb-2">
+                    <h4 className="text-xl font-semibold text-dark-text mb-2">
                       {tarifa.nombre}
                     </h4>
                   </motion.div>
