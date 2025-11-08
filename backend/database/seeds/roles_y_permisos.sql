@@ -80,6 +80,12 @@ INSERT INTO Permiso (nombre, fecha_creacion, fecha_actualizacion) VALUES
 ('exportar_reportes', NOW(), NOW()),
 ('ver_resumen_ejecutivo', NOW(), NOW()),
 
+-- Módulo: Pacientes (RF007)
+('ver_pacientes', NOW(), NOW()),
+('crear_pacientes', NOW(), NOW()),
+('editar_pacientes', NOW(), NOW()),
+('eliminar_pacientes', NOW(), NOW()),
+
 -- Módulo: Tarifarios (ya existentes, pero los agregamos por completitud)
 ('ver_tarifarios', NOW(), NOW()),
 ('crear_tarifarios', NOW(), NOW()),
@@ -150,7 +156,9 @@ WHERE nombre IN (
     -- Órdenes de Compra
     'ver_ordenes', 'completar_ordenes', 'marcar_orden_en_proceso', 'ver_historial_ordenes',
     -- Inventario
-    'ver_inventario', 'ajustar_inventario', 'ver_movimientos_inventario'
+    'ver_inventario', 'ajustar_inventario', 'ver_movimientos_inventario',
+    -- Pacientes (para gestionar entregas)
+    'ver_pacientes', 'crear_pacientes', 'editar_pacientes'
 )
 ON DUPLICATE KEY UPDATE fecha_actualizacion = NOW();
 
