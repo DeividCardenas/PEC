@@ -39,6 +39,11 @@ const CrearPage = lazy(() => import("./pages/Admin/CrearPage"));
 // Lazy loading para módulo Compare
 const Compare = lazy(() => import("./pages/Compare/Compare"));
 
+// Lazy loading para módulos adicionales
+const ControlInventario = lazy(() => import("./pages/Inventario/ControlInventario"));
+const ReportesCompras = lazy(() => import("./pages/Reportes/ReportesCompras"));
+const Pacientes = lazy(() => import("./pages/Pacientes/Pacientes"));
+
 // Componente de carga mientras se cargan los módulos
 const LoadingFallback = () => (
   <div className="min-h-screen bg-dark-bg flex items-center justify-center">
@@ -148,6 +153,30 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <EmpresaDetalles />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Inventario"
+              element={
+                <ProtectedRoute>
+                  <ControlInventario />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Reportes"
+              element={
+                <ProtectedRoute>
+                  <ReportesCompras />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Pacientes"
+              element={
+                <ProtectedRoute>
+                  <Pacientes />
                 </ProtectedRoute>
               }
             />
