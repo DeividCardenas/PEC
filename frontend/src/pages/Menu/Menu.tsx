@@ -1,7 +1,26 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, LogOut, Factory, Briefcase, Settings, Truck, FlaskConical, FileText } from "lucide-react";
+import {
+  ShoppingBag,
+  LogOut,
+  Factory,
+  Briefcase,
+  Settings,
+  Truck,
+  FlaskConical,
+  FileText,
+  ShoppingCart,
+  Package,
+  TrendingUp,
+  Users,
+  MapPin,
+  Hospital,
+  Activity,
+  BarChart3
+} from "lucide-react";
 import { useAuth } from "../../context/useAuth";
+import Card from "../../components/Card";
+import Button from "../../components/Button";
 
 const Menu: React.FC = () => {
   const navigate = useNavigate();
@@ -18,107 +37,125 @@ const Menu: React.FC = () => {
     navigate("/");
   };
 
+  const menuSections = [
+    {
+      title: "Módulo de Compras",
+      icon: ShoppingCart,
+      color: "primary",
+      items: [
+        { name: "Proveedores", route: "/Proveedores", icon: Truck, description: "Gestión de proveedores" },
+        { name: "Órdenes de Compra", route: "/Ordenes", icon: FileText, description: "Gestionar órdenes" },
+        { name: "Inventario", route: "/Inventario", icon: Package, description: "Control de stock" },
+        { name: "Reportes", route: "/Reportes", icon: BarChart3, description: "Reportes de compras" },
+      ]
+    },
+    {
+      title: "Módulo de Entregas",
+      icon: Truck,
+      color: "secondary",
+      items: [
+        { name: "Pacientes", route: "/Pacientes", icon: Users, description: "Gestión de pacientes" },
+        { name: "Entregas", route: "/Entregas", icon: Package, description: "Gestionar entregas" },
+        { name: "Rutas", route: "/Rutas", icon: MapPin, description: "Optimización de rutas" },
+        { name: "Seguimiento", route: "/Seguimiento", icon: Activity, description: "Seguimiento en tiempo real" },
+      ]
+    },
+    {
+      title: "Configuración General",
+      icon: Settings,
+      color: "accent",
+      items: [
+        { name: "Productos", route: "/Productos", icon: ShoppingBag, description: "Catálogo de productos" },
+        { name: "Empresas", route: "/Empresas", icon: Factory, description: "Gestión de empresas" },
+        { name: "Laboratorios", route: "/Laboratorio", icon: FlaskConical, description: "Administrar laboratorios" },
+        { name: "EPS", route: "/EPS", icon: Briefcase, description: "Entidades de salud" },
+        { name: "Tarifario", route: "/Tarifario", icon: TrendingUp, description: "Gestión de tarifas" },
+        { name: "Comparar Precios", route: "/comparar", icon: BarChart3, description: "Comparación de precios" },
+      ]
+    },
+  ];
+
   return (
-    <div className="h-screen bg-sky-900 flex flex-col items-center justify-center p-6 overflow-hidden relative">
-      <button
-        onClick={() => handleNavigation("/EPS")}
-        className="absolute top-4 right-4 bg-white p-3 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all focus:outline-none group"
-        aria-label="Ir a la sección de EPS"
-      >
-        <Briefcase size={32} className="text-indigo-900" />
-        <span className="absolute top-full right-0 mt-2 w-max px-3 py-1 bg-indigo-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-          Ir a la sección EPS
-        </span>
-      </button>
-
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Panel de Control</h1>
-        <p className="text-xl text-white">Bienvenido, {user?.email || 'Usuario'}</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-md">
+                <Hospital className="text-white" size={28} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Panel de Control</h1>
+                <p className="text-gray-600 mt-1">Bienvenido, {user?.email || 'Usuario'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {user?.rol === "Administrador" && (
+                <Button
+                  variant="outline"
+                  onClick={() => handleNavigation("/Admin")}
+                  icon={<Settings size={18} />}
+                >
+                  Administración
+                </Button>
+              )}
+              <Button
+                variant="danger"
+                onClick={handleLogout}
+                icon={<LogOut size={18} />}
+              >
+                Cerrar Sesión
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-8 w-full max-w-6xl px-4">
-        <button
-          onClick={() => handleNavigation("/Empresas")}
-          className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all p-6 flex flex-col items-center justify-center text-center focus:outline-none"
-          aria-label="Ir a la sección de Empresas"
-        >
-          <Factory size={60} className="text-indigo-900" />
-          <h3 className="text-3xl font-semibold text-indigo-900 mt-5">Empresas</h3>
-          <p className="text-gray-600 mt-2">Gestiona las empresas aquí</p>
-        </button>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-10">
+          {menuSections.map((section, idx) => (
+            <div key={idx} className="animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
+              {/* Section Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-xl bg-${section.color}-100 flex items-center justify-center`}>
+                  <section.icon className={`text-${section.color}-600`} size={22} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
+              </div>
 
-        <button
-          onClick={() => handleNavigation("/Productos")}
-          className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all p-6 flex flex-col items-center justify-center text-center focus:outline-none"
-          aria-label="Ir a la sección de Productos"
-        >
-          <ShoppingBag size={60} className="text-indigo-900" />
-          <h3 className="text-3xl font-semibold text-indigo-900 mt-5">Productos</h3>
-          <p className="text-gray-600 mt-2">Gestiona tus productos aquí</p>
-        </button>
+              {/* Section Items */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {section.items.map((item) => (
+                  <Card
+                    key={item.route}
+                    hoverable
+                    onClick={() => handleNavigation(item.route)}
+                    className="group cursor-pointer border border-gray-200"
+                    padding="lg"
+                  >
+                    <div className="flex flex-col items-center text-center">
+                      <div className={`w-14 h-14 rounded-2xl bg-${section.color}-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
+                        <item.icon className={`text-${section.color}-600`} size={28} />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.name}</h3>
+                      <p className="text-sm text-gray-500">{item.description}</p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
 
-        <button
-          onClick={() => handleNavigation("/Proveedores")}
-          className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all p-6 flex flex-col items-center justify-center text-center focus:outline-none"
-          aria-label="Ir a la sección de Proveedores"
-        >
-          <Truck size={60} className="text-indigo-900" />
-          <h3 className="text-3xl font-semibold text-indigo-900 mt-5">Proveedores</h3>
-          <p className="text-gray-600 mt-2">Gestiona tus proveedores aquí</p>
-        </button>
-
-        <button
-          onClick={() => handleNavigation("/Laboratorio")}
-          className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all p-6 flex flex-col items-center justify-center text-center focus:outline-none"
-          aria-label="Ir a la sección de Laboratorio"
-        >
-          <FlaskConical size={60} className="text-indigo-900" />
-          <h3 className="text-3xl font-semibold text-indigo-900 mt-5">Laboratorio</h3>
-          <p className="text-gray-600 mt-2">Gestiona el laboratorio aquí</p>
-        </button>
-
-        <button
-          onClick={() => handleNavigation("/Tarifario")}
-          className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all p-6 flex flex-col items-center justify-center text-center focus:outline-none"
-          aria-label="Ir a la sección de Tarifario"
-        >
-          <FileText size={60} className="text-indigo-900" />
-          <h3 className="text-3xl font-semibold text-indigo-900 mt-5">Tarifario</h3>
-          <p className="text-gray-600 mt-2">Gestiona el tarifario aquí</p>
-        </button>
-
-        <button
-          onClick={() => handleNavigation("/comparar")}
-          className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all p-6 flex flex-col items-center justify-center text-center focus:outline-none"
-          aria-label="Ir a la sección de Comparar"
-        >
-          <FileText size={60} className="text-indigo-900" />
-          <h3 className="text-3xl font-semibold text-indigo-900 mt-5">Comparar</h3>
-          <p className="text-gray-600 mt-2">Comparar precios entre compañías</p>
-        </button>
+        {/* Footer Info */}
+        <div className="mt-12 text-center">
+          <p className="text-sm text-gray-500">
+            Sistema PEC - Pharma Elite Care | Versión 1.0 | {new Date().getFullYear()}
+          </p>
+        </div>
       </div>
-
-      <button
-        onClick={handleLogout}
-        className="mt-10 px-6 py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition-all transform hover:scale-105 flex items-center gap-2"
-        aria-label="Cerrar sesión"
-      >
-        <LogOut size={20} />
-        Cerrar Sesión
-      </button>
-
-      {user?.rol === "Administrador" && (
-        <button
-          onClick={() => handleNavigation("/Admin")}
-          className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all focus:outline-none group"
-          aria-label="Ir a la página de Administración"
-        >
-          <Settings size={32} className="text-indigo-900" />
-          <span className="absolute bottom-full right-0 mb-2 w-max px-3 py-1 bg-indigo-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-            Ir a la página de Admin
-          </span>
-        </button>
-      )}
     </div>
   );
 };
