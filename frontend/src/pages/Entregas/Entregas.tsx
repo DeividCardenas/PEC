@@ -4,6 +4,21 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Package,
+  Plus,
+  Eye,
+  Repeat,
+  Ban,
+  Clock,
+  PackageCheck,
+  Truck,
+  CheckCircle,
+  XCircle,
+  TrendingUp,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { usePermissions, PermissionGuard } from "../../hooks/usePermissions";
 import {
@@ -31,12 +46,19 @@ import {
   EstadoModal,
   CancelarModal,
 } from "./EntregasModals";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Badge from "../../components/Badge";
+import Table, { Column } from "../../components/Table";
+import Card, { CardContent } from "../../components/Card";
+import Pagination from "../../components/Pagination";
 
 const Entregas: React.FC = () => {
   // ============================================================================
   // STATE
   // ============================================================================
 
+  const navigate = useNavigate();
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [estadisticas, setEstadisticas] = useState<EstadisticasEntregas | null>(null);
   const [selectedEntrega, setSelectedEntrega] = useState<Entrega | null>(null);
@@ -211,7 +233,7 @@ const Entregas: React.FC = () => {
 
   const calcularTotal = (): number => {
     return productosEntrega.reduce((total, item) => {
-      return total + (item.cantidad * item.precio_unitario);
+      return total + item.cantidad * item.precio_unitario;
     }, 0);
   };
 
@@ -328,266 +350,300 @@ const Entregas: React.FC = () => {
   };
 
   // ============================================================================
+  // TABLE COLUMNS
+  // ============================================================================
+
+  const getEstadoBadgeVariant = (estado: string): "default" | "warning" | "info" | "success" | "danger" => {
+    switch (estado) {
+      case "Pendiente":
+        return "warning";
+      case "En Preparación":
+        return "info";
+      case "Despachado":
+        return "info";
+      case "Entregado":
+        return "success";
+      case "Cancelado":
+        return "danger";
+      default:
+        return "default";
+    }
+  };
+
+  const columns: Column<Entrega>[] = [
+    {
+      key: "numero_pedido",
+      title: "Número Pedido",
+      align: "left",
+      render: (val) => <span className="font-mono font-semibold text-primary-600">{val}</span>,
+    },
+    {
+      key: "paciente",
+      title: "Paciente",
+      align: "left",
+      render: (val: any) => (
+        <div className="text-sm">
+          <div className="font-medium text-gray-900">
+            {val?.nombres} {val?.apellidos}
+          </div>
+          <div className="text-gray-500">{val?.numero_identificacion}</div>
+        </div>
+      ),
+    },
+    {
+      key: "fecha_pedido",
+      title: "Fecha Pedido",
+      align: "center",
+      render: (val) => formatearFecha(val),
+    },
+    {
+      key: "estado",
+      title: "Estado",
+      align: "center",
+      render: (val) => <Badge variant={getEstadoBadgeVariant(val)}>{val}</Badge>,
+    },
+    {
+      key: "total",
+      title: "Total",
+      align: "right",
+      render: (val) => <span className="font-semibold">{formatearMoneda(val)}</span>,
+    },
+    {
+      key: "detalles",
+      title: "Productos",
+      align: "center",
+      render: (val: any) => `${val?.length || 0} producto(s)`,
+    },
+    {
+      key: "id_entrega",
+      title: "Acciones",
+      align: "center",
+      render: (_, row) => (
+        <div className="flex justify-center gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleVerDetalles(row)}
+            icon={<Eye size={16} />}
+            title="Ver detalles"
+          />
+          {row.estado !== "Cancelado" && row.estado !== "Entregado" && (
+            <PermissionGuard permission="despachar_entregas">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setSelectedEntrega(row);
+                  setShowEstadoModal(true);
+                }}
+                icon={<Repeat size={16} className="text-purple-600" />}
+                title="Cambiar estado"
+              />
+            </PermissionGuard>
+          )}
+          {row.estado !== "Cancelado" && row.estado !== "Entregado" && (
+            <PermissionGuard permission="cancelar_entregas">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setSelectedEntrega(row);
+                  setShowCancelarModal(true);
+                }}
+                icon={<Ban size={16} className="text-red-600" />}
+                title="Cancelar entrega"
+              />
+            </PermissionGuard>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  // ============================================================================
   // RENDER
   // ============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Gestión de Entregas
-            </h1>
-            <p className="text-gray-600 mt-2">Pedidos de entrega a pacientes con control de inventario</p>
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" onClick={() => navigate("/Menu")} icon={<ArrowLeft size={20} />}>
+                Volver
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                  <Package size={32} />
+                  Gestión de Entregas
+                </h1>
+                <p className="text-gray-600 mt-1">Pedidos de entrega a pacientes con control de inventario</p>
+              </div>
+            </div>
+            <PermissionGuard permission="crear_entregas">
+              <Button variant="success" onClick={() => setShowCreateModal(true)} icon={<Plus size={20} />}>
+                Nueva Entrega
+              </Button>
+            </PermissionGuard>
           </div>
-          <PermissionGuard permission="crear_entregas">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-semibold"
-            >
-              <i className="fas fa-plus"></i>
-              Nueva Entrega
-            </button>
-          </PermissionGuard>
         </div>
       </div>
 
       {/* Estadísticas */}
       {estadisticas && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-blue-500">
-            <p className="text-gray-600 text-sm font-medium">Total Entregas</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{estadisticas.totalEntregas}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-yellow-500">
-            <p className="text-gray-600 text-sm font-medium">Pendientes</p>
-            <p className="text-3xl font-bold text-yellow-600 mt-2">{estadisticas.entregasPendientes}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-indigo-500">
-            <p className="text-gray-600 text-sm font-medium">En Preparación</p>
-            <p className="text-3xl font-bold text-indigo-600 mt-2">{estadisticas.entregasEnPreparacion}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-purple-500">
-            <p className="text-gray-600 text-sm font-medium">Despachadas</p>
-            <p className="text-3xl font-bold text-purple-600 mt-2">{estadisticas.entregasDespachadas}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-green-500">
-            <p className="text-gray-600 text-sm font-medium">Entregadas</p>
-            <p className="text-3xl font-bold text-green-600 mt-2">{estadisticas.entregasEntregadas}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-red-500">
-            <p className="text-gray-600 text-sm font-medium">Canceladas</p>
-            <p className="text-3xl font-bold text-red-600 mt-2">{estadisticas.entregasCanceladas}</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">Total</p>
+                    <p className="text-2xl font-bold text-primary-600 mt-1">{estadisticas.totalEntregas}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                    <Package size={20} className="text-primary-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">Pendientes</p>
+                    <p className="text-2xl font-bold text-yellow-600 mt-1">{estadisticas.entregasPendientes}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <Clock size={20} className="text-yellow-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">En Preparación</p>
+                    <p className="text-2xl font-bold text-indigo-600 mt-1">{estadisticas.entregasEnPreparacion}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <PackageCheck size={20} className="text-indigo-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">Despachadas</p>
+                    <p className="text-2xl font-bold text-purple-600 mt-1">{estadisticas.entregasDespachadas}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Truck size={20} className="text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">Entregadas</p>
+                    <p className="text-2xl font-bold text-green-600 mt-1">{estadisticas.entregasEntregadas}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <CheckCircle size={20} className="text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card hoverable>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">Canceladas</p>
+                    <p className="text-2xl font-bold text-red-600 mt-1">{estadisticas.entregasCanceladas}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                    <XCircle size={20} className="text-red-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
 
-      {/* Filtros */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-            <input
-              type="text"
-              placeholder="Número de pedido, paciente..."
-              value={search}
-              onChange={handleSearchChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-            <select
-              value={estadoFilter}
-              onChange={handleEstadoFilterChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">Todos los estados</option>
-              {ESTADOS_ENTREGA.map((estado) => (
-                <option key={estado} value={estado}>
-                  {estado}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Desde</label>
-            <input
-              type="date"
-              value={fechaDesde}
-              onChange={handleFechaDesdeChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Hasta</label>
-            <input
-              type="date"
-              value={fechaHasta}
-              onChange={handleFechaHastaChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-        </div>
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={handleLimpiarFiltros}
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
-          >
-            Limpiar filtros
-          </button>
-        </div>
-      </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card>
+          <CardContent>
+            {/* Filtros */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Input
+                variant="search"
+                placeholder="Número de pedido, paciente..."
+                value={search}
+                onChange={handleSearchChange}
+                clearable
+                onClear={() => {
+                  setSearch("");
+                  setCurrentPage(1);
+                }}
+              />
 
-      {/* Tabla de Entregas */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-indigo-600 to-purple-600">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  Número Pedido
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  Paciente
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  Fecha Pedido
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
-                  Productos
-                </th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : entregas.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No se encontraron entregas
-                  </td>
-                </tr>
-              ) : (
-                entregas.map((entrega) => (
-                  <tr key={entrega.id_entrega} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="font-mono font-semibold text-indigo-600">
-                        {entrega.numero_pedido}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm">
-                        <div className="font-medium text-gray-900">
-                          {entrega.paciente?.nombres} {entrega.paciente?.apellidos}
-                        </div>
-                        <div className="text-gray-500">{entrega.paciente?.numero_identificacion}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatearFecha(entrega.fecha_pedido)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getEstadoColor(entrega.estado)}`}>
-                        {entrega.estado}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      {formatearMoneda(entrega.total)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {entrega.detalles?.length || 0} producto(s)
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleVerDetalles(entrega)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Ver detalles"
-                        >
-                          <i className="fas fa-eye"></i>
-                        </button>
-                        {entrega.estado !== "Cancelado" && entrega.estado !== "Entregado" && (
-                          <PermissionGuard permission="despachar_entregas">
-                            <button
-                              onClick={() => {
-                                setSelectedEntrega(entrega);
-                                setShowEstadoModal(true);
-                              }}
-                              className="text-purple-600 hover:text-purple-900"
-                              title="Cambiar estado"
-                            >
-                              <i className="fas fa-exchange-alt"></i>
-                            </button>
-                          </PermissionGuard>
-                        )}
-                        {entrega.estado !== "Cancelado" && entrega.estado !== "Entregado" && (
-                          <PermissionGuard permission="cancelar_entregas">
-                            <button
-                              onClick={() => {
-                                setSelectedEntrega(entrega);
-                                setShowCancelarModal(true);
-                              }}
-                              className="text-red-600 hover:text-red-900"
-                              title="Cancelar entrega"
-                            >
-                              <i className="fas fa-ban"></i>
-                            </button>
-                          </PermissionGuard>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              <div>
+                <select
+                  value={estadoFilter}
+                  onChange={handleEstadoFilterChange}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                >
+                  <option value="">Todos los estados</option>
+                  {ESTADOS_ENTREGA.map((estado) => (
+                    <option key={estado} value={estado}>
+                      {estado}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        {/* Paginación */}
-        {totalPages > 1 && (
-          <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Anterior
-              </button>
-              <span className="px-4 py-2 bg-white border border-gray-300 rounded-lg">
-                Página {currentPage} de {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Siguiente
-              </button>
+              <Input label="Desde" type="date" value={fechaDesde} onChange={handleFechaDesdeChange} />
+
+              <Input label="Hasta" type="date" value={fechaHasta} onChange={handleFechaHastaChange} />
             </div>
-          </div>
-        )}
+
+            <div className="mb-6 flex justify-end">
+              <Button variant="ghost" onClick={handleLimpiarFiltros}>
+                Limpiar filtros
+              </Button>
+            </div>
+
+            {/* Paginación */}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+
+            {/* Tabla de Entregas */}
+            <Table
+              columns={columns}
+              data={entregas}
+              keyExtractor={(row) => row.id_entrega}
+              loading={loading}
+              striped
+              hoverable
+              emptyMessage="No se encontraron entregas"
+            />
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Modal Crear Entrega - Due to length, I'll create this in the next part */}
+      {/* Modal Crear Entrega */}
       {showCreateModal && (
         <CreateEntregaModal
           formData={formData}
@@ -655,5 +711,4 @@ const Entregas: React.FC = () => {
   );
 };
 
-// Component file continues in next message due to length...
 export default Entregas;
