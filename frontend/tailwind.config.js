@@ -1,5 +1,6 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -51,6 +52,27 @@ export default {
           green: '#059669',
           light: '#f0f9ff',
           dark: '#0c4a6e',
+        },
+        // Dark theme - Paleta oscura azulada profesional
+        dark: {
+          bg: {
+            DEFAULT: '#0a0f1e',
+            secondary: '#111827',
+            tertiary: '#1e293b',
+          },
+          card: {
+            DEFAULT: '#162139',
+            hover: '#1e2d4d',
+          },
+          border: {
+            DEFAULT: '#2d3f5f',
+            light: '#3d4f6f',
+          },
+          text: {
+            DEFAULT: '#e2e8f0',
+            secondary: '#94a3b8',
+            muted: '#64748b',
+          },
         },
       },
       fontFamily: {

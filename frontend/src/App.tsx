@@ -41,15 +41,15 @@ const Compare = lazy(() => import("./pages/Compare/Compare"));
 
 // Componente de carga mientras se cargan los módulos
 const LoadingFallback = () => (
-  <div className="min-h-screen bg-sky-900 flex items-center justify-center">
-    <div className="text-white text-xl">Cargando...</div>
+  <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+    <div className="text-dark-text text-xl">Cargando...</div>
   </div>
 );
 
 const App: React.FC = () => {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-dark-bg">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Login />} />
