@@ -112,6 +112,10 @@ class Server {
     // Rutas de entregas (RF008)
     this.app.use(this.path + "entregas", require("../routes/entregas/Entrega.routes"));
 
+    // Rutas de domiciliarios y rutas (RF009)
+    this.app.use(this.path + "domiciliarios", require("../routes/domiciliarios/Domiciliario.routes"));
+    this.app.use(this.path + "rutas", require("../routes/rutas/Ruta.routes"));
+
     // Rutas para EPS y tarifarios
     this.app.use(this.path + "eps", require("../routes/eps/EPS.routes"));
     this.app.use(this.path + "tarifario", require("../routes/eps/Tarifario.routes"));

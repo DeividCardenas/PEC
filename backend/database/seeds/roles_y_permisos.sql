@@ -93,6 +93,19 @@ INSERT INTO Permiso (nombre, fecha_creacion, fecha_actualizacion) VALUES
 ('cancelar_entregas', NOW(), NOW()),
 ('despachar_entregas', NOW(), NOW()),
 
+-- Módulo: Domiciliarios (RF009)
+('ver_domiciliarios', NOW(), NOW()),
+('crear_domiciliarios', NOW(), NOW()),
+('editar_domiciliarios', NOW(), NOW()),
+('eliminar_domiciliarios', NOW(), NOW()),
+
+-- Módulo: Rutas (RF009)
+('ver_rutas', NOW(), NOW()),
+('crear_rutas', NOW(), NOW()),
+('asignar_rutas', NOW(), NOW()),
+('gestionar_rutas', NOW(), NOW()),
+('cancelar_rutas', NOW(), NOW()),
+
 -- Módulo: Tarifarios (ya existentes, pero los agregamos por completitud)
 ('ver_tarifarios', NOW(), NOW()),
 ('crear_tarifarios', NOW(), NOW()),
@@ -169,7 +182,10 @@ WHERE nombre IN (
     -- Pacientes (para gestionar entregas)
     'ver_pacientes', 'crear_pacientes', 'editar_pacientes',
     -- Entregas (rol principal para este módulo)
-    'ver_entregas', 'crear_entregas', 'editar_entregas', 'despachar_entregas', 'cancelar_entregas'
+    'ver_entregas', 'crear_entregas', 'editar_entregas', 'despachar_entregas', 'cancelar_entregas',
+    -- Domiciliarios y Rutas (RF009)
+    'ver_domiciliarios', 'crear_domiciliarios', 'editar_domiciliarios',
+    'ver_rutas', 'crear_rutas', 'asignar_rutas', 'gestionar_rutas', 'cancelar_rutas'
 )
 ON DUPLICATE KEY UPDATE fecha_actualizacion = NOW();
 
