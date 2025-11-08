@@ -22,7 +22,6 @@ import {
 import { fetchDomiciliarios, type Domiciliario } from "../../services/Domiciliarios/domiciliariosService";
 import { fetchEntregas, type Entrega } from "../../services/Entregas/entregasService";
 import { usePermissions } from "../../hooks/usePermissions";
-import PermissionGuard from "../../components/PermissionGuard";
 import {
   FormModal,
   DetailsModal,
@@ -344,7 +343,7 @@ const Rutas: React.FC = () => {
               Gestión de rutas optimizadas de entrega
             </p>
           </div>
-          <PermissionGuard permission="crear_rutas">
+          {hasPermission("crear_rutas") && (
             <button
               onClick={handleCrearRuta}
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
@@ -364,7 +363,7 @@ const Rutas: React.FC = () => {
               </svg>
               Nueva Ruta Optimizada
             </button>
-          </PermissionGuard>
+          )}
         </div>
       </div>
 
@@ -717,7 +716,7 @@ const Rutas: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           {/* Ver Detalle */}
-                          <PermissionGuard permission="ver_rutas">
+                          {hasPermission("ver_rutas") && (
                             <button
                               onClick={() => cargarDetalleRuta(ruta.id_ruta)}
                               className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
@@ -743,15 +742,38 @@ const Rutas: React.FC = () => {
                                 />
                               </svg>
                             </button>
-                          </PermissionGuard>
+                          )}
 
                           {/* Asignar Domiciliario */}
-                          {ruta.estado === "Pendiente" && (
-                            <PermissionGuard permission="asignar_rutas">
+                          {ruta.estado === "Pendiente" && hasPermission("asignar_rutas") && (
+                            <button
+                              onClick={() => handleAsignarDomiciliario(ruta)}
+                              className="text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
+                              title="Asignar domiciliario"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                              </svg>
+                            </button>
+                          )}
+
+                          {/* Cambiar Estado */}
+                          {ruta.estado !== "Cancelada" &&
+                            ruta.estado !== "Completada" && hasPermission("gestionar_rutas") && (
                               <button
-                                onClick={() => handleAsignarDomiciliario(ruta)}
-                                className="text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
-                                title="Asignar domiciliario"
+                                onClick={() => handleCambiarEstado(ruta)}
+                                className="text-green-600 hover:text-green-800 font-medium text-sm transition-colors"
+                                title="Cambiar estado"
                               >
                                 <svg
                                   className="w-5 h-5"
@@ -763,63 +785,34 @@ const Rutas: React.FC = () => {
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                   />
                                 </svg>
                               </button>
-                            </PermissionGuard>
-                          )}
-
-                          {/* Cambiar Estado */}
-                          {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && (
-                              <PermissionGuard permission="gestionar_rutas">
-                                <button
-                                  onClick={() => handleCambiarEstado(ruta)}
-                                  className="text-green-600 hover:text-green-800 font-medium text-sm transition-colors"
-                                  title="Cambiar estado"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                </button>
-                              </PermissionGuard>
                             )}
 
                           {/* Cancelar Ruta */}
                           {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && (
-                              <PermissionGuard permission="cancelar_rutas">
-                                <button
-                                  onClick={() => handleCancelar(ruta)}
-                                  className="text-red-600 hover:text-red-800 font-medium text-sm transition-colors"
-                                  title="Cancelar ruta"
+                            ruta.estado !== "Completada" && hasPermission("cancelar_rutas") && (
+                              <button
+                                onClick={() => handleCancelar(ruta)}
+                                className="text-red-600 hover:text-red-800 font-medium text-sm transition-colors"
+                                title="Cancelar ruta"
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
                                 >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M6 18L18 6M6 6l12 12"
-                                    />
-                                  </svg>
-                                </button>
-                              </PermissionGuard>
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
                             )}
                         </div>
                       </td>

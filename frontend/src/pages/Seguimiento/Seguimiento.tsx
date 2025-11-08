@@ -18,7 +18,6 @@ import {
   type RutaConSeguimiento,
 } from "../../services/Seguimiento/seguimientoService";
 import { usePermissions } from "../../hooks/usePermissions";
-import PermissionGuard from "../../components/PermissionGuard";
 import { RutaDetailsModal } from "./SeguimientoModals";
 
 const Seguimiento: React.FC = () => {
@@ -498,14 +497,14 @@ const Seguimiento: React.FC = () => {
                         </div>
                       )}
 
-                      <PermissionGuard permission="actualizar_ubicacion">
+                      {hasPermission("actualizar_ubicacion") && (
                         <button
                           onClick={() => handleSimularMovimiento(dom.id_domiciliario)}
                           className="w-full mt-2 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-3 rounded transition-colors"
                         >
                           Simular Movimiento
                         </button>
-                      </PermissionGuard>
+                      )}
                     </div>
                   ))}
                 </div>
