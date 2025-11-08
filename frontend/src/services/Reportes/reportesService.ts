@@ -2,7 +2,7 @@
  * Servicio para Reportes de Compras (RF005)
  */
 
-import api from "../api";
+import { axiosInstance } from "../Shared/axiosInstance";
 
 // Interfaces
 export interface FiltrosReporte {
@@ -108,7 +108,7 @@ export const fetchReporteCompras = async (
     }
   });
 
-  const response = await api.get(`/reportes/compras?${params.toString()}`);
+  const response = await axiosInstance.get(`/reportes/compras?${params.toString()}`);
   return response.data.data;
 };
 
@@ -125,7 +125,7 @@ export const fetchTopProveedores = async (
   if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
   params.append("limite", limite.toString());
 
-  const response = await api.get(`/reportes/top-proveedores?${params.toString()}`);
+  const response = await axiosInstance.get(`/reportes/top-proveedores?${params.toString()}`);
   return response.data.data;
 };
 
@@ -142,7 +142,7 @@ export const fetchTendencias = async (
   if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
   if (id_proveedor) params.append("id_proveedor", id_proveedor.toString());
 
-  const response = await api.get(`/reportes/tendencias?${params.toString()}`);
+  const response = await axiosInstance.get(`/reportes/tendencias?${params.toString()}`);
   return response.data.data;
 };
 
@@ -158,7 +158,7 @@ export const exportarReporteCSV = async (filtros: FiltrosReporte = {}): Promise<
     }
   });
 
-  const response = await api.get(`/reportes/exportar-csv?${params.toString()}`, {
+  const response = await axiosInstance.get(`/reportes/exportar-csv?${params.toString()}`, {
     responseType: "blob",
   });
 
@@ -176,6 +176,6 @@ export const fetchResumenEjecutivo = async (
   if (fecha_desde) params.append("fecha_desde", fecha_desde);
   if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
 
-  const response = await api.get(`/reportes/resumen-ejecutivo?${params.toString()}`);
+  const response = await axiosInstance.get(`/reportes/resumen-ejecutivo?${params.toString()}`);
   return response.data.data;
 };
