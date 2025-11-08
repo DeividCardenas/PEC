@@ -2,7 +2,7 @@
  * Servicio para Optimización de Rutas (RF009)
  */
 
-import api from "../api";
+import { axiosInstance } from "../Shared/axiosInstance";
 import type { Domiciliario } from "../Domiciliarios/domiciliariosService";
 import type { Entrega } from "../Entregas/entregasService";
 
@@ -117,7 +117,7 @@ export const fetchRutas = async (params: RutasParams = {}): Promise<RutasRespons
   if (params.fecha_desde) queryParams.append("fecha_desde", params.fecha_desde);
   if (params.fecha_hasta) queryParams.append("fecha_hasta", params.fecha_hasta);
 
-  const response = await api.get(`/rutas?${queryParams.toString()}`);
+  const response = await axiosInstance.get(`/rutas?${queryParams.toString()}`);
   return response.data.data;
 };
 
@@ -125,7 +125,7 @@ export const fetchRutas = async (params: RutasParams = {}): Promise<RutasRespons
  * Obtener una ruta por ID
  */
 export const fetchRuta = async (id: number): Promise<RutaResponse> => {
-  const response = await api.get(`/rutas/${id}`);
+  const response = await axiosInstance.get(`/rutas/${id}`);
   return response.data.data;
 };
 
@@ -133,7 +133,7 @@ export const fetchRuta = async (id: number): Promise<RutaResponse> => {
  * Crear una ruta optimizada
  */
 export const createRuta = async (data: CrearRutaData): Promise<RutaResponse> => {
-  const response = await api.post("/rutas", data);
+  const response = await axiosInstance.post("/rutas", data);
   return response.data.data;
 };
 
@@ -144,7 +144,7 @@ export const asignarDomiciliario = async (
   id: number,
   data: AsignarDomiciliarioData
 ): Promise<RutaResponse> => {
-  const response = await api.put(`/rutas/${id}/asignar-domiciliario`, data);
+  const response = await axiosInstance.put(`/rutas/${id}/asignar-domiciliario`, data);
   return response.data.data;
 };
 
@@ -155,7 +155,7 @@ export const cambiarEstadoRuta = async (
   id: number,
   data: CambiarEstadoRutaData
 ): Promise<RutaResponse> => {
-  const response = await api.put(`/rutas/${id}/estado`, data);
+  const response = await axiosInstance.put(`/rutas/${id}/estado`, data);
   return response.data.data;
 };
 
@@ -163,7 +163,7 @@ export const cambiarEstadoRuta = async (
  * Cancelar una ruta
  */
 export const cancelarRuta = async (id: number, data: CancelarRutaData): Promise<RutaResponse> => {
-  const response = await api.put(`/rutas/${id}/cancelar`, data);
+  const response = await axiosInstance.put(`/rutas/${id}/cancelar`, data);
   return response.data.data;
 };
 
@@ -171,7 +171,7 @@ export const cancelarRuta = async (id: number, data: CancelarRutaData): Promise<
  * Obtener estadísticas de rutas
  */
 export const fetchEstadisticas = async (): Promise<EstadisticasResponse> => {
-  const response = await api.get("/rutas/estadisticas");
+  const response = await axiosInstance.get("/rutas/estadisticas");
   return response.data.data;
 };
 

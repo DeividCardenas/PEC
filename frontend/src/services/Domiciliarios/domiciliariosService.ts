@@ -2,7 +2,7 @@
  * Servicio para Gestión de Domiciliarios (RF009)
  */
 
-import api from "../api";
+import { axiosInstance } from "../Shared/axiosInstance";
 
 // ============================================================================
 // INTERFACES
@@ -108,7 +108,7 @@ export const fetchDomiciliarios = async (params: DomiciliariosParams = {}): Prom
     queryParams.append("disponible", params.disponible);
   }
 
-  const response = await api.get(`/domiciliarios?${queryParams.toString()}`);
+  const response = await axiosInstance.get(`/domiciliarios?${queryParams.toString()}`);
   return response.data.data;
 };
 
@@ -116,7 +116,7 @@ export const fetchDomiciliarios = async (params: DomiciliariosParams = {}): Prom
  * Obtener un domiciliario por ID
  */
 export const fetchDomiciliario = async (id: number): Promise<DomiciliarioResponse> => {
-  const response = await api.get(`/domiciliarios/${id}`);
+  const response = await axiosInstance.get(`/domiciliarios/${id}`);
   return response.data.data;
 };
 
@@ -124,7 +124,7 @@ export const fetchDomiciliario = async (id: number): Promise<DomiciliarioRespons
  * Crear un nuevo domiciliario
  */
 export const createDomiciliario = async (data: CrearDomiciliarioData): Promise<DomiciliarioResponse> => {
-  const response = await api.post("/domiciliarios", data);
+  const response = await axiosInstance.post("/domiciliarios", data);
   return response.data.data;
 };
 
@@ -135,7 +135,7 @@ export const updateDomiciliario = async (
   id: number,
   data: ActualizarDomiciliarioData
 ): Promise<DomiciliarioResponse> => {
-  const response = await api.put(`/domiciliarios/${id}`, data);
+  const response = await axiosInstance.put(`/domiciliarios/${id}`, data);
   return response.data.data;
 };
 
@@ -143,14 +143,14 @@ export const updateDomiciliario = async (
  * Eliminar un domiciliario (soft delete)
  */
 export const deleteDomiciliario = async (id: number): Promise<void> => {
-  await api.delete(`/domiciliarios/${id}`);
+  await axiosInstance.delete(`/domiciliarios/${id}`);
 };
 
 /**
  * Reactivar un domiciliario
  */
 export const reactivarDomiciliario = async (id: number): Promise<DomiciliarioResponse> => {
-  const response = await api.put(`/domiciliarios/${id}/reactivar`);
+  const response = await axiosInstance.put(`/domiciliarios/${id}/reactivar`);
   return response.data.data;
 };
 
@@ -161,7 +161,7 @@ export const cambiarDisponibilidad = async (
   id: number,
   disponible: boolean
 ): Promise<DomiciliarioResponse> => {
-  const response = await api.put(`/domiciliarios/${id}/disponibilidad`, { disponible });
+  const response = await axiosInstance.put(`/domiciliarios/${id}/disponibilidad`, { disponible });
   return response.data.data;
 };
 
@@ -169,7 +169,7 @@ export const cambiarDisponibilidad = async (
  * Obtener estadísticas de domiciliarios
  */
 export const fetchEstadisticas = async (): Promise<EstadisticasResponse> => {
-  const response = await api.get("/domiciliarios/estadisticas");
+  const response = await axiosInstance.get("/domiciliarios/estadisticas");
   return response.data.data;
 };
 

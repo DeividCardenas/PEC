@@ -2,7 +2,7 @@
  * Servicio de Seguimiento en Tiempo Real (RF010)
  */
 
-import api from "../api";
+import { axiosInstance } from "../Shared/axiosInstance";
 import { Domiciliario } from "../Domiciliarios/domiciliariosService";
 import { Entrega } from "../Entregas/entregasService";
 import { Ruta } from "../Rutas/rutasService";
@@ -50,7 +50,7 @@ export const actualizarUbicacion = async (
   idDomiciliario: number,
   data: ActualizarUbicacionData
 ): Promise<UbicacionDomiciliario> => {
-  const response = await api.put(
+  const response = await axiosInstance.put(
     `/seguimiento/domiciliario/${idDomiciliario}/ubicacion`,
     data
   );
@@ -63,7 +63,7 @@ export const actualizarUbicacion = async (
 export const fetchUbicacionDomiciliario = async (
   idDomiciliario: number
 ): Promise<DomiciliarioConUbicacion> => {
-  const response = await api.get(
+  const response = await axiosInstance.get(
     `/seguimiento/domiciliario/${idDomiciliario}/ubicacion`
   );
   return response.data.data.domiciliario;
@@ -80,7 +80,7 @@ export const fetchUbicacionesDomiciliarios = async (
     params.append("activos_solo", activosSolo.toString());
   }
 
-  const response = await api.get(`/seguimiento/domiciliarios?${params.toString()}`);
+  const response = await axiosInstance.get(`/seguimiento/domiciliarios?${params.toString()}`);
   return response.data.data;
 };
 
@@ -90,7 +90,7 @@ export const fetchUbicacionesDomiciliarios = async (
 export const fetchSeguimientoRuta = async (
   idRuta: number
 ): Promise<{ ruta: RutaConSeguimiento }> => {
-  const response = await api.get(`/seguimiento/ruta/${idRuta}`);
+  const response = await axiosInstance.get(`/seguimiento/ruta/${idRuta}`);
   return response.data.data;
 };
 
@@ -101,7 +101,7 @@ export const fetchRutasActivas = async (): Promise<{
   rutas: RutaConSeguimiento[];
   total: number;
 }> => {
-  const response = await api.get(`/seguimiento/rutas-activas`);
+  const response = await axiosInstance.get(`/seguimiento/rutas-activas`);
   return response.data.data;
 };
 
@@ -111,7 +111,7 @@ export const fetchRutasActivas = async (): Promise<{
 export const simularMovimiento = async (
   idDomiciliario: number
 ): Promise<UbicacionDomiciliario> => {
-  const response = await api.post(
+  const response = await axiosInstance.post(
     `/seguimiento/domiciliario/${idDomiciliario}/simular-movimiento`
   );
   return response.data.data;

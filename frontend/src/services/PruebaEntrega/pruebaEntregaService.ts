@@ -2,7 +2,7 @@
  * Servicio de Prueba de Entrega Digital (RF010)
  */
 
-import api from "../api";
+import { axiosInstance } from "../Shared/axiosInstance";
 import { Entrega } from "../Entregas/entregasService";
 
 // ============================================================================
@@ -76,7 +76,7 @@ export const registrarPruebaEntrega = async (
     formData.append("foto", data.foto);
   }
 
-  const response = await api.post(`/prueba-entrega/${idEntrega}`, formData, {
+  const response = await axiosInstance.post(`/prueba-entrega/${idEntrega}`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -91,7 +91,7 @@ export const registrarPruebaEntrega = async (
 export const fetchPruebaEntrega = async (
   idEntrega: number
 ): Promise<{ entrega: PruebaEntrega; tiene_prueba: boolean }> => {
-  const response = await api.get(`/prueba-entrega/${idEntrega}`);
+  const response = await axiosInstance.get(`/prueba-entrega/${idEntrega}`);
   return response.data.data;
 };
 
@@ -102,7 +102,7 @@ export const confirmarEntregaSinPrueba = async (
   idEntrega: number,
   data: ConfirmarSinPruebaData
 ): Promise<Entrega> => {
-  const response = await api.post(
+  const response = await axiosInstance.post(
     `/prueba-entrega/${idEntrega}/confirmar-sin-prueba`,
     data
   );
@@ -113,7 +113,7 @@ export const confirmarEntregaSinPrueba = async (
  * Obtener URL de la firma
  */
 export const getFirmaUrl = (idEntrega: number): string => {
-  const baseURL = api.defaults.baseURL || "";
+  const baseURL = axiosInstance.defaults.baseURL || "";
   return `${baseURL}/prueba-entrega/${idEntrega}/firma`;
 };
 
@@ -121,7 +121,7 @@ export const getFirmaUrl = (idEntrega: number): string => {
  * Obtener URL de la foto
  */
 export const getFotoUrl = (idEntrega: number): string => {
-  const baseURL = api.defaults.baseURL || "";
+  const baseURL = axiosInstance.defaults.baseURL || "";
   return `${baseURL}/prueba-entrega/${idEntrega}/foto`;
 };
 
@@ -131,7 +131,7 @@ export const getFotoUrl = (idEntrega: number): string => {
 export const fetchEstadisticas = async (): Promise<{
   estadisticas: EstadisticasPruebaEntrega;
 }> => {
-  const response = await api.get(`/prueba-entrega/estadisticas`);
+  const response = await axiosInstance.get(`/prueba-entrega/estadisticas`);
   return response.data.data;
 };
 
