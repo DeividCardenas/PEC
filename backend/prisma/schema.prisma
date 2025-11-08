@@ -25,6 +25,7 @@ model Usuario {
   historial_ordenes   HistorialOrdenCompra[]                          // Cambios de estado realizados (RF004)
   entregas_creadas    Entrega[] @relation("EntregasCreadas")          // Entregas creadas por el usuario (RF008)
   entregas_despachadas Entrega[] @relation("EntregasDespachadas")     // Entregas despachadas por el usuario (RF008)
+  rutas_creadas       Ruta[] @relation("RutasCreadas")                // Rutas creadas por el usuario (RF009)
 
   createdAt DateTime @default(now()) @map("fecha_creacion")         // Fecha de creación
   updatedAt DateTime @updatedAt @map("fecha_actualizacion")         // Fecha de última actualización
@@ -390,11 +391,16 @@ model Entrega {
   // Control
   activo                   Boolean  @default(true)                                   // Soft delete
 
+  // Optimización de Rutas (RF009)
+  id_ruta                  Int?     @map("ruta_id")                                  // Ruta a la que pertenece (opcional)
+  orden_en_ruta            Int?                                                      // Orden de entrega dentro de la ruta
+
   // Relaciones
   paciente                 Paciente @relation(fields: [id_paciente], references: [id_paciente])
   usuario_creador          Usuario  @relation("EntregasCreadas", fields: [id_usuario_creador], references: [id_usuario])
   usuario_despachador      Usuario? @relation("EntregasDespachadas", fields: [id_usuario_despachador], references: [id_usuario])
   detalles                 DetalleEntrega[]                                          // Productos del pedido
+  ruta                     Ruta?    @relation(fields: [id_ruta], references: [id_ruta])  // Ruta asignada (RF009)
 
   createdAt                DateTime @default(now()) @map("fecha_creacion")
   updatedAt                DateTime @updatedAt @map("fecha_actualizacion")
@@ -404,6 +410,7 @@ model Entrega {
   @@index([id_paciente])
   @@index([estado])
   @@index([fecha_pedido])
+  @@index([id_ruta])
 }
 
 /// Detalle de productos en una entrega (RF008)
@@ -428,4 +435,78 @@ model DetalleEntrega {
   @@map("detalles_entrega")
   @@index([id_entrega])
   @@index([id_producto])
+}
+
+/// Domiciliarios/Repartidores del sistema (RF009)
+model Domiciliario {
+  id_domiciliario     Int      @id @default(autoincrement()) @map("id_domiciliario")
+  nombres             String   @db.VarChar(100)                                        // Nombres del domiciliario
+  apellidos           String   @db.VarChar(100)                                        // Apellidos del domiciliario
+  numero_identificacion String @unique                                                  // Número de identificación único
+  telefono            String   @db.VarChar(20)                                         // Teléfono de contacto
+  email               String?  @db.VarChar(100)                                        // Email (opcional)
+
+  // Información del vehículo
+  tipo_vehiculo       String?  @db.VarChar(50)                                         // Tipo: Moto, Bicicleta, Auto, A pie
+  placa_vehiculo      String?  @db.VarChar(20)                                         // Placa del vehículo (si aplica)
+
+  // Estado
+  activo              Boolean  @default(true)                                          // Si está activo
+  disponible          Boolean  @default(true)                                          // Si está disponible para asignación
+
+  // Observaciones
+  observaciones       String?  @db.Text                                                // Observaciones adicionales
+
+  // Relaciones
+  rutas               Ruta[]                                                           // Rutas asignadas al domiciliario
+
+  createdAt           DateTime @default(now()) @map("fecha_creacion")
+  updatedAt           DateTime @updatedAt @map("fecha_actualizacion")
+
+  @@map("domiciliarios")
+  @@index([numero_identificacion])
+  @@index([activo, disponible])
+}
+
+/// Rutas de Entrega Optimizadas (RF009)
+model Ruta {
+  id_ruta             Int      @id @default(autoincrement()) @map("id_ruta")
+  numero_ruta         String   @unique @db.VarChar(50)                                 // Número único de ruta (ej: RUTA-2024-0001)
+
+  // Asignación
+  id_domiciliario     Int?     @map("domiciliario_id")                                 // Domiciliario asignado (opcional inicialmente)
+  id_usuario_creador  Int      @map("usuario_creador_id")                              // Usuario que creó la ruta
+
+  // Fechas
+  fecha_creacion_ruta DateTime @default(now())                                         // Fecha de creación de la ruta
+  fecha_programada    DateTime?                                                        // Fecha programada para ejecutar la ruta
+  fecha_inicio        DateTime?                                                        // Fecha/hora de inicio real
+  fecha_finalizacion  DateTime?                                                        // Fecha/hora de finalización
+
+  // Estado
+  estado              String   @db.VarChar(50) @default("Pendiente")                   // Estados: Pendiente, En Curso, Completada, Cancelada
+
+  // Optimización
+  distancia_total_km  Decimal? @db.Decimal(10, 2)                                     // Distancia total estimada en km
+  tiempo_estimado_min Int?                                                             // Tiempo estimado en minutos
+
+  // Observaciones
+  observaciones       String?  @db.Text                                                // Observaciones de la ruta
+
+  // Control
+  activo              Boolean  @default(true)                                          // Soft delete
+
+  // Relaciones
+  domiciliario        Domiciliario? @relation(fields: [id_domiciliario], references: [id_domiciliario])
+  usuario_creador     Usuario  @relation("RutasCreadas", fields: [id_usuario_creador], references: [id_usuario])
+  entregas            Entrega[]                                                        // Entregas incluidas en la ruta
+
+  createdAt           DateTime @default(now()) @map("fecha_creacion")
+  updatedAt           DateTime @updatedAt @map("fecha_actualizacion")
+
+  @@map("rutas")
+  @@index([numero_ruta])
+  @@index([id_domiciliario])
+  @@index([estado])
+  @@index([fecha_programada])
 }
