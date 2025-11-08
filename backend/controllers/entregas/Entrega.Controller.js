@@ -5,8 +5,8 @@
 
 const { Prisma } = require("@prisma/client");
 const prisma = require("../../config/database");
-const { sendSuccess, sendError } = require("../../helpers/response.helper");
-const { handlePrismaError } = require("../../helpers/prismaError.helper");
+const { sendSuccess, sendError } = require("../../helpers/responseHandler");
+const { handlePrismaError } = require("../../helpers/responseHandler");
 
 /**
  * Helper: Validar si el ID es válido

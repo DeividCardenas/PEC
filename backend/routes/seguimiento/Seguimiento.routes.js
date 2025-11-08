@@ -11,13 +11,9 @@ const {
   ObtenerSeguimientoRuta,
   ObtenerRutasActivas,
   SimularMovimiento,
-} = require("../controllers/seguimiento/Seguimiento.Controller");
+} = require("../../controllers/seguimiento/Seguimiento.Controller");
 
-const { verificarToken } = require("../middleware/authMiddleware");
-const { verificarPermiso } = require("../middleware/permisosMiddleware");
-
-// Todas las rutas requieren autenticación
-router.use(verificarToken);
+const { VerificarAcceso } = require("../../middlewares/authMiddleware.enhanced");
 
 /**
  * @route   PUT /api/seguimiento/domiciliario/:id/ubicacion
@@ -26,7 +22,7 @@ router.use(verificarToken);
  */
 router.put(
   "/domiciliario/:id/ubicacion",
-  verificarPermiso("actualizar_ubicacion"),
+  VerificarAcceso({ permisosRequeridos: ["actualizar_ubicacion"] }),
   ActualizarUbicacion
 );
 
@@ -37,7 +33,7 @@ router.put(
  */
 router.get(
   "/domiciliario/:id/ubicacion",
-  verificarPermiso("ver_seguimiento"),
+  VerificarAcceso({ permisosRequeridos: ["ver_seguimiento"] }),
   ObtenerUbicacionDomiciliario
 );
 
@@ -48,7 +44,7 @@ router.get(
  */
 router.get(
   "/domiciliarios",
-  verificarPermiso("ver_seguimiento"),
+  VerificarAcceso({ permisosRequeridos: ["ver_seguimiento"] }),
   ObtenerUbicacionesDomiciliarios
 );
 
@@ -59,7 +55,7 @@ router.get(
  */
 router.get(
   "/ruta/:id",
-  verificarPermiso("ver_seguimiento"),
+  VerificarAcceso({ permisosRequeridos: ["ver_seguimiento"] }),
   ObtenerSeguimientoRuta
 );
 
@@ -70,7 +66,7 @@ router.get(
  */
 router.get(
   "/rutas-activas",
-  verificarPermiso("ver_seguimiento"),
+  VerificarAcceso({ permisosRequeridos: ["ver_seguimiento"] }),
   ObtenerRutasActivas
 );
 
@@ -81,7 +77,7 @@ router.get(
  */
 router.post(
   "/domiciliario/:id/simular-movimiento",
-  verificarPermiso("actualizar_ubicacion"),
+  VerificarAcceso({ permisosRequeridos: ["actualizar_ubicacion"] }),
   SimularMovimiento
 );
 
