@@ -2,7 +2,7 @@
  * Servicio para Gestión de Entregas (RF008)
  */
 
-import api from "../api";
+import { axiosInstance } from "../Shared/axiosInstance";
 
 // ============================================================================
 // INTERFACES
@@ -179,7 +179,7 @@ export const fetchEntregas = async (params: EntregasParams = {}): Promise<Entreg
   if (params.fecha_desde) queryParams.append("fecha_desde", params.fecha_desde);
   if (params.fecha_hasta) queryParams.append("fecha_hasta", params.fecha_hasta);
 
-  const response = await api.get(`/entregas?${queryParams.toString()}`);
+  const response = await axiosInstance.get(`/entregas?${queryParams.toString()}`);
   return response.data.data;
 };
 
@@ -187,7 +187,7 @@ export const fetchEntregas = async (params: EntregasParams = {}): Promise<Entreg
  * Obtener una entrega por ID
  */
 export const fetchEntrega = async (id: number): Promise<EntregaResponse> => {
-  const response = await api.get(`/entregas/${id}`);
+  const response = await axiosInstance.get(`/entregas/${id}`);
   return response.data.data;
 };
 
@@ -195,7 +195,7 @@ export const fetchEntrega = async (id: number): Promise<EntregaResponse> => {
  * Crear una nueva entrega
  */
 export const createEntrega = async (data: CrearEntregaData): Promise<EntregaResponse> => {
-  const response = await api.post("/entregas", data);
+  const response = await axiosInstance.post("/entregas", data);
   return response.data.data;
 };
 
@@ -206,7 +206,7 @@ export const updateEntrega = async (
   id: number,
   data: ActualizarEntregaData
 ): Promise<EntregaResponse> => {
-  const response = await api.put(`/entregas/${id}`, data);
+  const response = await axiosInstance.put(`/entregas/${id}`, data);
   return response.data.data;
 };
 
@@ -217,7 +217,7 @@ export const cambiarEstadoEntrega = async (
   id: number,
   data: CambiarEstadoData
 ): Promise<EntregaResponse> => {
-  const response = await api.put(`/entregas/${id}/estado`, data);
+  const response = await axiosInstance.put(`/entregas/${id}/estado`, data);
   return response.data.data;
 };
 
@@ -228,7 +228,7 @@ export const cancelarEntrega = async (
   id: number,
   data: CancelarEntregaData
 ): Promise<EntregaResponse> => {
-  const response = await api.put(`/entregas/${id}/cancelar`, data);
+  const response = await axiosInstance.put(`/entregas/${id}/cancelar`, data);
   return response.data.data;
 };
 
@@ -236,7 +236,7 @@ export const cancelarEntrega = async (
  * Obtener estadísticas de entregas
  */
 export const fetchEstadisticas = async (): Promise<EstadisticasResponse> => {
-  const response = await api.get("/entregas/estadisticas");
+  const response = await axiosInstance.get("/entregas/estadisticas");
   return response.data.data;
 };
 
@@ -252,7 +252,7 @@ export const fetchEntregasPorPaciente = async (
   if (params.page) queryParams.append("page", params.page.toString());
   if (params.limit) queryParams.append("limit", params.limit.toString());
 
-  const response = await api.get(`/entregas/paciente/${id_paciente}?${queryParams.toString()}`);
+  const response = await axiosInstance.get(`/entregas/paciente/${id_paciente}?${queryParams.toString()}`);
   return response.data.data;
 };
 
