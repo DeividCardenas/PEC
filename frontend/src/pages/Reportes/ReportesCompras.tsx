@@ -27,7 +27,7 @@ import {
   ResumenEjecutivoResponse,
 } from "../../services/Reportes/reportesService";
 import { fetchProveedores } from "../../services/Proveedores/proveedoresService";
-import { fetchLaboratorios } from "../../services/Empresa/empresasService";
+import { fetchLaboratories } from "../../services/Laboratorio/laboratoriosService";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Pagination from "../../components/Pagination";
 
@@ -80,8 +80,8 @@ const ReportesCompras = () => {
 
   const cargarLaboratorios = async () => {
     try {
-      const response = await fetchLaboratorios({ limit: 1000 });
-      setLaboratorios(response.laboratorios);
+      const response = await fetchLaboratories(1, 1000);
+      setLaboratorios(response.data);
     } catch (error) {
       console.error("Error al cargar laboratorios:", error);
     }
