@@ -8,8 +8,7 @@
  * - Simular movimiento de domiciliario
  */
 
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../../config/database");
 
 /**
  * Actualizar la ubicación actual de un domiciliario

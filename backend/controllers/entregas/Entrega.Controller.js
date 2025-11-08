@@ -3,8 +3,8 @@
  * Gestión completa de pedidos de entrega a pacientes con integración a inventario
  */
 
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const { Prisma } = require("@prisma/client");
+const prisma = require("../../config/database");
 const { sendSuccess, sendError } = require("../../helpers/response.helper");
 const { handlePrismaError } = require("../../helpers/prismaError.helper");
 
@@ -739,7 +739,7 @@ const ObtenerEstadisticasEntregas = async (req, res) => {
         _count: { estado: true },
         where: { activo: true },
       }),
-      prisma.$queryRaw`
+      prisma.$queryRaw(Prisma.sql`
         SELECT
           DATE_FORMAT(fecha_pedido, '%Y-%m') as mes,
           COUNT(*) as cantidad,
@@ -750,7 +750,7 @@ const ObtenerEstadisticasEntregas = async (req, res) => {
         GROUP BY DATE_FORMAT(fecha_pedido, '%Y-%m')
         ORDER BY mes DESC
         LIMIT 12
-      `,
+      `),
       prisma.entrega.aggregate({
         _sum: {
           total: true,
