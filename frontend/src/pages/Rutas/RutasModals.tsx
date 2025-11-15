@@ -102,20 +102,25 @@ export const FormModal: React.FC<FormModalProps> = ({
   const domiciliariosDisponibles = domiciliarios.filter((d) => d.disponible && d.activo);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-dark-card border border-dark-border rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-6 rounded-t-xl">
+        <div className="bg-gradient-to-r from-primary-600 to-primary-500 text-white p-6 rounded-t-xl border-b border-primary-400">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold">Nueva Ruta Optimizada</h2>
-              <p className="text-blue-100 mt-1">
-                Seleccione las entregas y el sistema optimizará la ruta
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                Nueva Ruta Optimizada
+              </h2>
+              <p className="text-primary-100 mt-1 text-sm">
+                Seleccione las entregas y el sistema calculará automáticamente la ruta óptima
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
+              className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all duration-200"
             >
               <svg
                 className="w-6 h-6"
@@ -137,74 +142,88 @@ export const FormModal: React.FC<FormModalProps> = ({
         <form onSubmit={onSubmit}>
           <div className="p-6 space-y-6">
             {/* Información de la Ruta */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Domiciliario */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Domiciliario (Opcional)
-                </label>
-                <select
-                  value={domiciliarioSeleccionado || ""}
-                  onChange={(e) =>
-                    setDomiciliarioSeleccionado(
-                      e.target.value ? parseInt(e.target.value) : null
-                    )
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Sin asignar</option>
-                  {domiciliariosDisponibles.map((dom) => (
-                    <option key={dom.id_domiciliario} value={dom.id_domiciliario}>
-                      {dom.nombres} {dom.apellidos}
-                      {dom.tipo_vehiculo && ` - ${dom.tipo_vehiculo}`}
-                    </option>
-                  ))}
-                </select>
-                {domiciliariosDisponibles.length === 0 && (
-                  <p className="text-sm text-amber-600 mt-1">
-                    No hay domiciliarios disponibles
-                  </p>
-                )}
+            <div className="bg-dark-bg border border-dark-border rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-dark-text mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Información de la Ruta
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Domiciliario */}
+                <div>
+                  <label className="block text-sm font-medium text-dark-text-secondary mb-2">
+                    Domiciliario (Opcional)
+                  </label>
+                  <select
+                    value={domiciliarioSeleccionado || ""}
+                    onChange={(e) =>
+                      setDomiciliarioSeleccionado(
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
+                    className="w-full px-4 py-2.5 bg-dark-bg border border-dark-border text-dark-text rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  >
+                    <option value="">Sin asignar</option>
+                    {domiciliariosDisponibles.map((dom) => (
+                      <option key={dom.id_domiciliario} value={dom.id_domiciliario}>
+                        {dom.nombres} {dom.apellidos}
+                        {dom.tipo_vehiculo && ` - ${dom.tipo_vehiculo}`}
+                      </option>
+                    ))}
+                  </select>
+                  {domiciliariosDisponibles.length === 0 && (
+                    <p className="text-sm text-amber-400 mt-1 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      No hay domiciliarios disponibles
+                    </p>
+                  )}
+                </div>
+
+                {/* Fecha Programada */}
+                <div>
+                  <label className="block text-sm font-medium text-dark-text-secondary mb-2">
+                    Fecha Programada (Opcional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={fechaProgramada}
+                    onChange={(e) => setFechaProgramada(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-dark-bg border border-dark-border text-dark-text rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  />
+                </div>
               </div>
 
-              {/* Fecha Programada */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha Programada (Opcional)
+              {/* Observaciones */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-dark-text-secondary mb-2">
+                  Observaciones (Opcional)
                 </label>
-                <input
-                  type="datetime-local"
-                  value={fechaProgramada}
-                  onChange={(e) => setFechaProgramada(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <textarea
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  rows={3}
+                  placeholder="Observaciones adicionales sobre la ruta..."
+                  className="w-full px-4 py-2.5 bg-dark-bg border border-dark-border text-dark-text placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 />
               </div>
             </div>
 
-            {/* Observaciones */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Observaciones (Opcional)
-              </label>
-              <textarea
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                rows={3}
-                placeholder="Observaciones adicionales sobre la ruta..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
             {/* Selección de Entregas */}
-            <div>
+            <div className="bg-dark-bg border border-dark-border rounded-lg p-4">
               <div className="flex justify-between items-center mb-4">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-dark-text flex items-center gap-2">
+                  <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
                   Seleccionar Entregas Pendientes *
                 </label>
                 <button
                   type="button"
                   onClick={onSeleccionarTodas}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-sm text-primary-400 hover:text-primary-300 font-medium transition-colors"
                 >
                   {entregasSeleccionadas.length === entregasPendientes.length
                     ? "Deseleccionar todas"
@@ -213,9 +232,9 @@ export const FormModal: React.FC<FormModalProps> = ({
               </div>
 
               {entregasPendientes.length === 0 ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-6 text-center">
                   <svg
-                    className="w-12 h-12 text-amber-500 mx-auto mb-2"
+                    className="w-12 h-12 text-amber-400 mx-auto mb-3"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -227,49 +246,49 @@ export const FormModal: React.FC<FormModalProps> = ({
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     />
                   </svg>
-                  <p className="text-amber-800 font-medium">
+                  <p className="text-amber-300 font-medium text-base">
                     No hay entregas pendientes de despacho
                   </p>
-                  <p className="text-sm text-amber-600 mt-1">
+                  <p className="text-sm text-amber-400/80 mt-1">
                     Debe crear entregas primero en el módulo de Entregas
                   </p>
                 </div>
               ) : (
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                <div className="border border-dark-border rounded-lg overflow-hidden">
                   <div className="max-h-96 overflow-y-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 sticky top-0">
+                      <thead className="bg-dark-bg sticky top-0 border-b border-dark-border">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-dark-text-secondary uppercase">
                             Sel.
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-dark-text-secondary uppercase">
                             Número
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-dark-text-secondary uppercase">
                             Paciente
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-dark-text-secondary uppercase">
                             Dirección
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-dark-text-secondary uppercase">
                             Ciudad
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-dark-text-secondary uppercase">
                             Total
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-dark-text-secondary uppercase">
                             Fecha
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-dark-border">
                         {entregasPendientes.map((entrega) => (
                           <tr
                             key={entrega.id_entrega}
-                            className={`hover:bg-blue-50 cursor-pointer transition-colors ${
+                            className={`hover:bg-primary-500/10 cursor-pointer transition-colors ${
                               entregasSeleccionadas.includes(entrega.id_entrega)
-                                ? "bg-blue-100"
+                                ? "bg-primary-500/20 border-l-4 border-primary-500"
                                 : ""
                             }`}
                             onClick={() => onToggleEntrega(entrega.id_entrega)}
@@ -281,37 +300,37 @@ export const FormModal: React.FC<FormModalProps> = ({
                                   entrega.id_entrega
                                 )}
                                 onChange={() => onToggleEntrega(entrega.id_entrega)}
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                className="w-4 h-4 text-primary-600 bg-dark-bg border-dark-border rounded focus:ring-2 focus:ring-primary-500"
                               />
                             </td>
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 text-sm font-medium text-dark-text">
                               {entrega.numero_pedido}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">
+                            <td className="px-4 py-3 text-sm text-dark-text">
                               {entrega.paciente
                                 ? `${entrega.paciente.nombres} ${entrega.paciente.apellidos}`
                                 : "N/A"}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-4 py-3 text-sm text-dark-text-secondary">
                               {entrega.direccion_entrega}
                               {entrega.barrio_entrega && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-dark-text-secondary/70">
                                   {entrega.barrio_entrega}
                                 </div>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-4 py-3 text-sm text-dark-text-secondary">
                               {entrega.ciudad_entrega}
                               {entrega.departamento_entrega && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-dark-text-secondary/70">
                                   {entrega.departamento_entrega}
                                 </div>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 text-sm font-medium text-dark-text">
                               {formatearMoneda(entrega.total)}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-4 py-3 text-sm text-dark-text-secondary">
                               {formatearFecha(entrega.fecha_pedido)}
                             </td>
                           </tr>
@@ -323,8 +342,11 @@ export const FormModal: React.FC<FormModalProps> = ({
               )}
 
               {entregasSeleccionadas.length > 0 && (
-                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-800">
+                <div className="mt-3 bg-primary-500/10 border border-primary-500/30 rounded-lg p-3">
+                  <p className="text-sm text-primary-300 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
                     <span className="font-semibold">
                       {entregasSeleccionadas.length}
                     </span>{" "}
@@ -332,7 +354,7 @@ export const FormModal: React.FC<FormModalProps> = ({
                       ? "entrega seleccionada"
                       : "entregas seleccionadas"}
                   </p>
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className="text-xs text-primary-400/80 mt-1 ml-7">
                     El sistema calculará automáticamente la ruta óptima
                   </p>
                 </div>
@@ -341,19 +363,22 @@ export const FormModal: React.FC<FormModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-end gap-3">
+          <div className="bg-dark-bg border-t border-dark-border px-6 py-4 rounded-b-xl flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium transition-colors"
+              className="px-6 py-2.5 border border-dark-border rounded-lg text-dark-text hover:bg-dark-bg/50 font-medium transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={entregasSeleccionadas.length === 0}
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:from-primary-700 hover:to-primary-600 font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               Crear Ruta Optimizada
             </button>
           </div>

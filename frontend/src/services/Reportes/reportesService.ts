@@ -2,7 +2,28 @@
  * Servicio para Reportes de Compras (RF005)
  */
 
-import api from "../api";
+import axios from "axios";
+
+// Crear instancia específica para reportes
+const reportesAxios = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL}/reportes`,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Interceptor para incluir token de autenticación
+reportesAxios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Interfaces
 export interface FiltrosReporte {
@@ -108,8 +129,8 @@ export const fetchReporteCompras = async (
     }
   });
 
-  const response = await api.get(`/reportes/compras?${params.toString()}`);
-  return response.data.data;
+  const response = await reportesAxios.get(`/compras?${params.toString()}`);
+  return response.data;
 };
 
 /**
@@ -125,8 +146,8 @@ export const fetchTopProveedores = async (
   if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
   params.append("limite", limite.toString());
 
-  const response = await api.get(`/reportes/top-proveedores?${params.toString()}`);
-  return response.data.data;
+  const response = await reportesAxios.get(`/top-proveedores?${params.toString()}`);
+  return response.data;
 };
 
 /**
@@ -142,8 +163,8 @@ export const fetchTendencias = async (
   if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
   if (id_proveedor) params.append("id_proveedor", id_proveedor.toString());
 
-  const response = await api.get(`/reportes/tendencias?${params.toString()}`);
-  return response.data.data;
+  const response = await reportesAxios.get(`/tendencias?${params.toString()}`);
+  return response.data;
 };
 
 /**
@@ -158,7 +179,7 @@ export const exportarReporteCSV = async (filtros: FiltrosReporte = {}): Promise<
     }
   });
 
-  const response = await api.get(`/reportes/exportar-csv?${params.toString()}`, {
+  const response = await reportesAxios.get(`/exportar-csv?${params.toString()}`, {
     responseType: "blob",
   });
 
@@ -176,6 +197,6 @@ export const fetchResumenEjecutivo = async (
   if (fecha_desde) params.append("fecha_desde", fecha_desde);
   if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
 
-  const response = await api.get(`/reportes/resumen-ejecutivo?${params.toString()}`);
-  return response.data.data;
+  const response = await reportesAxios.get(`/resumen-ejecutivo?${params.toString()}`);
+  return response.data;
 };

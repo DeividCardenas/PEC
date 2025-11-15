@@ -11,14 +11,10 @@ const {
   ObtenerFirma,
   ObtenerFoto,
   ObtenerEstadisticas,
-} = require("../controllers/prueba-entrega/PruebaEntrega.Controller");
+} = require("../../controllers/prueba-entrega/PruebaEntrega.Controller");
 
-const { verificarToken } = require("../middleware/authMiddleware");
-const { verificarPermiso } = require("../middleware/permisosMiddleware");
-const { uploadPruebaEntrega } = require("../middleware/uploadConfig");
-
-// Todas las rutas requieren autenticación
-router.use(verificarToken);
+const { VerificarAcceso } = require("../../middlewares/authMiddleware.enhanced");
+const { uploadPruebaEntrega } = require("../../middleware/uploadConfig");
 
 /**
  * @route   POST /api/prueba-entrega/:id
@@ -27,7 +23,7 @@ router.use(verificarToken);
  */
 router.post(
   "/:id",
-  verificarPermiso("registrar_prueba_entrega"),
+  VerificarAcceso({ permisosRequeridos: ["registrar_prueba_entrega"] }),
   uploadPruebaEntrega,
   RegistrarPruebaEntrega
 );
@@ -39,7 +35,7 @@ router.post(
  */
 router.get(
   "/:id",
-  verificarPermiso("ver_entregas"),
+  VerificarAcceso({ permisosRequeridos: ["ver_entregas"] }),
   ObtenerPruebaEntrega
 );
 
@@ -50,7 +46,7 @@ router.get(
  */
 router.post(
   "/:id/confirmar-sin-prueba",
-  verificarPermiso("gestionar_entregas"),
+  VerificarAcceso({ permisosRequeridos: ["gestionar_entregas"] }),
   ConfirmarEntregaSinPrueba
 );
 
@@ -61,7 +57,7 @@ router.post(
  */
 router.get(
   "/:id/firma",
-  verificarPermiso("ver_entregas"),
+  VerificarAcceso({ permisosRequeridos: ["ver_entregas"] }),
   ObtenerFirma
 );
 
@@ -72,7 +68,7 @@ router.get(
  */
 router.get(
   "/:id/foto",
-  verificarPermiso("ver_entregas"),
+  VerificarAcceso({ permisosRequeridos: ["ver_entregas"] }),
   ObtenerFoto
 );
 
@@ -83,7 +79,7 @@ router.get(
  */
 router.get(
   "/estadisticas",
-  verificarPermiso("ver_entregas"),
+  VerificarAcceso({ permisosRequeridos: ["ver_entregas"] }),
   ObtenerEstadisticas
 );
 

@@ -36,10 +36,10 @@ const Card: React.FC<CardProps> = ({
   };
 
   const hoverStyles = hoverable
-    ? 'transition-all duration-200 hover:shadow-strong hover:-translate-y-0.5 cursor-pointer'
+    ? 'transition-all duration-200 hover:shadow-strong hover:-translate-y-0.5 hover:bg-dark-card-hover cursor-pointer'
     : '';
 
-  const combinedClassName = `bg-white rounded-xl ${paddingStyles[padding]} ${shadowStyles[shadow]} ${hoverStyles} ${className}`;
+  const combinedClassName = `bg-dark-card rounded-xl border border-dark-border ${paddingStyles[padding]} ${shadowStyles[shadow]} ${hoverStyles} ${className}`;
 
   if (onClick) {
     return (
@@ -61,7 +61,7 @@ export const CardHeader: React.FC<{ children: React.ReactNode; className?: strin
   children,
   className = '',
 }) => {
-  return <div className={`border-b border-gray-200 pb-3 mb-4 ${className}`}>{children}</div>;
+  return <div className={`border-b border-dark-border pb-3 mb-4 ${className}`}>{children}</div>;
 };
 
 /**
@@ -71,7 +71,7 @@ export const CardTitle: React.FC<{ children: React.ReactNode; className?: string
   children,
   className = '',
 }) => {
-  return <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>{children}</h3>;
+  return <h3 className={`text-lg font-semibold text-dark-text ${className}`}>{children}</h3>;
 };
 
 /**
@@ -91,5 +91,5 @@ export const CardFooter: React.FC<{ children: React.ReactNode; className?: strin
   children,
   className = '',
 }) => {
-  return <div className={`border-t border-gray-200 pt-3 mt-4 ${className}`}>{children}</div>;
+  return <div className={`border-t border-dark-border pt-3 mt-4 ${className}`}>{children}</div>;
 };

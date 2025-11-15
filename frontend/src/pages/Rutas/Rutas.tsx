@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   fetchRutas,
@@ -22,7 +23,6 @@ import {
 import { fetchDomiciliarios, type Domiciliario } from "../../services/Domiciliarios/domiciliariosService";
 import { fetchEntregas, type Entrega } from "../../services/Entregas/entregasService";
 import { usePermissions } from "../../hooks/usePermissions";
-import PermissionGuard from "../../components/PermissionGuard";
 import {
   FormModal,
   DetailsModal,
@@ -33,9 +33,10 @@ import {
 
 const Rutas: React.FC = () => {
   // ============================================================================
-  // PERMISOS
+  // HOOKS
   // ============================================================================
-  const { hasPermission } = usePermissions();
+  const navigate = useNavigate();
+  const { tienePermiso } = usePermissions();
 
   // ============================================================================
   // ESTADOS
@@ -181,7 +182,7 @@ const Rutas: React.FC = () => {
 
     try {
       const dataToSend: CrearRutaData = {
-        entregas: entregasSeleccionadas,
+        entregas_ids: entregasSeleccionadas,
         id_domiciliario: domiciliarioSeleccionado || undefined,
         fecha_programada: fechaProgramada || undefined,
         observaciones: observaciones || undefined,
@@ -213,7 +214,7 @@ const Rutas: React.FC = () => {
     }
 
     try {
-      await asignarDomiciliario(rutaSeleccionada.id_ruta, nuevoDomiciliarioId);
+      await asignarDomiciliario(rutaSeleccionada.id_ruta, { id_domiciliario: nuevoDomiciliarioId });
       toast.success("Domiciliario asignado exitosamente");
       setShowAssignModal(false);
       cargarRutas();
@@ -239,7 +240,7 @@ const Rutas: React.FC = () => {
     }
 
     try {
-      await cambiarEstadoRuta(rutaSeleccionada.id_ruta, nuevoEstado);
+      await cambiarEstadoRuta(rutaSeleccionada.id_ruta, { nuevo_estado: nuevoEstado });
       toast.success("Estado cambiado exitosamente");
       setShowChangeStatusModal(false);
       cargarRutas();
@@ -267,7 +268,7 @@ const Rutas: React.FC = () => {
     }
 
     try {
-      await cancelarRuta(rutaSeleccionada.id_ruta, motivoCancelacion);
+      await cancelarRuta(rutaSeleccionada.id_ruta, { motivo: motivoCancelacion });
       toast.success("Ruta cancelada exitosamente");
       setShowCancelModal(false);
       cargarRutas();
@@ -332,41 +333,43 @@ const Rutas: React.FC = () => {
   // RENDER
   // ============================================================================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              Optimización de Rutas
-            </h1>
-            <p className="text-gray-600">
-              Gestión de rutas optimizadas de entrega
-            </p>
-          </div>
-          <PermissionGuard permission="crear_rutas">
+      <header className="bg-dark-card border-b border-dark-border shadow-md p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/Menu")}
+            className="flex items-center text-dark-text hover:text-primary-400 transition-colors px-4 py-2 rounded-lg hover:bg-dark-bg"
+          >
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Volver al Menú</span>
+          </button>
+
+          <h1 className="text-3xl font-bold text-dark-text flex items-center gap-2">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Optimización de Rutas
+          </h1>
+
+          {tienePermiso("crear_rutas") && (
             <button
               onClick={handleCrearRuta}
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
+              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Nueva Ruta Optimizada
             </button>
-          </PermissionGuard>
+          )}
         </div>
-      </div>
+      </header>
+
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
 
       {/* Estadísticas */}
       {estadisticas && (
@@ -486,7 +489,7 @@ const Rutas: React.FC = () => {
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Distancia Total</p>
                   <p className="text-3xl font-bold text-gray-800 mt-2">
-                    {estadisticas.distanciaTotal.toFixed(1)}
+                    {estadisticas.distanciaTotal ? estadisticas.distanciaTotal.toFixed(1) : '0.0'}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">kilómetros</p>
                 </div>
@@ -717,7 +720,7 @@ const Rutas: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           {/* Ver Detalle */}
-                          <PermissionGuard permission="ver_rutas">
+                          {tienePermiso("ver_rutas") && (
                             <button
                               onClick={() => cargarDetalleRuta(ruta.id_ruta)}
                               className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
@@ -743,15 +746,38 @@ const Rutas: React.FC = () => {
                                 />
                               </svg>
                             </button>
-                          </PermissionGuard>
+                          )}
 
                           {/* Asignar Domiciliario */}
-                          {ruta.estado === "Pendiente" && (
-                            <PermissionGuard permission="asignar_rutas">
+                          {ruta.estado === "Pendiente" && tienePermiso("asignar_rutas") && (
+                            <button
+                              onClick={() => handleAsignarDomiciliario(ruta)}
+                              className="text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
+                              title="Asignar domiciliario"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                              </svg>
+                            </button>
+                          )}
+
+                          {/* Cambiar Estado */}
+                          {ruta.estado !== "Cancelada" &&
+                            ruta.estado !== "Completada" && tienePermiso("gestionar_rutas") && (
                               <button
-                                onClick={() => handleAsignarDomiciliario(ruta)}
-                                className="text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
-                                title="Asignar domiciliario"
+                                onClick={() => handleCambiarEstado(ruta)}
+                                className="text-green-600 hover:text-green-800 font-medium text-sm transition-colors"
+                                title="Cambiar estado"
                               >
                                 <svg
                                   className="w-5 h-5"
@@ -763,63 +789,34 @@ const Rutas: React.FC = () => {
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                   />
                                 </svg>
                               </button>
-                            </PermissionGuard>
-                          )}
-
-                          {/* Cambiar Estado */}
-                          {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && (
-                              <PermissionGuard permission="gestionar_rutas">
-                                <button
-                                  onClick={() => handleCambiarEstado(ruta)}
-                                  className="text-green-600 hover:text-green-800 font-medium text-sm transition-colors"
-                                  title="Cambiar estado"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                </button>
-                              </PermissionGuard>
                             )}
 
                           {/* Cancelar Ruta */}
                           {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && (
-                              <PermissionGuard permission="cancelar_rutas">
-                                <button
-                                  onClick={() => handleCancelar(ruta)}
-                                  className="text-red-600 hover:text-red-800 font-medium text-sm transition-colors"
-                                  title="Cancelar ruta"
+                            ruta.estado !== "Completada" && tienePermiso("cancelar_rutas") && (
+                              <button
+                                onClick={() => handleCancelar(ruta)}
+                                className="text-red-600 hover:text-red-800 font-medium text-sm transition-colors"
+                                title="Cancelar ruta"
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
                                 >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M6 18L18 6M6 6l12 12"
-                                    />
-                                  </svg>
-                                </button>
-                              </PermissionGuard>
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
                             )}
                         </div>
                       </td>
@@ -910,6 +907,8 @@ const Rutas: React.FC = () => {
         onClose={() => setShowCancelModal(false)}
         onSubmit={handleSubmitCancelar}
       />
+        </div>
+      </div>
     </div>
   );
 };

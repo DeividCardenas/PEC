@@ -68,8 +68,8 @@ const Login: React.FC = () => {
               <div className="text-primary-200 text-sm">Seguro</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <div className="text-3xl font-bold text-white mb-1">RF010</div>
-              <div className="text-primary-200 text-sm">Completo</div>
+              <div className="text-3xl font-bold text-white mb-1">INVIMA</div>
+              <div className="text-primary-200 text-sm">Certificado</div>
             </div>
           </div>
         </div>
@@ -78,33 +78,33 @@ const Login: React.FC = () => {
       {/* Right Section - Form */}
       <div className="flex w-full lg:w-1/2 items-center justify-center p-6 md:p-12 relative z-10">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-strong p-8 md:p-10 animate-slide-up">
+          <div className="bg-dark-card border border-dark-border rounded-3xl shadow-strong p-8 md:p-10 animate-slide-up">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex lg:hidden items-center justify-center w-16 h-16 bg-primary-100 rounded-2xl mb-4">
-                <Hospital size={32} className="text-primary-600" />
+              <div className="inline-flex lg:hidden items-center justify-center w-16 h-16 bg-primary-900/50 rounded-2xl mb-4">
+                <Hospital size={32} className="text-primary-400" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900">Bienvenido</h2>
-              <p className="text-gray-600 mt-2">Inicia sesión para continuar</p>
+              <h2 className="text-3xl font-bold text-dark-text">Bienvenido</h2>
+              <p className="text-dark-text-secondary mt-2">Inicia sesión para continuar</p>
             </div>
 
             {/* Error Alert */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-slide-down">
-                <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
-                <p className="text-red-800 text-sm">{error}</p>
+              <div className="mb-6 p-4 bg-red-950/50 border border-red-800 rounded-xl flex items-start gap-3 animate-slide-down">
+                <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+                <p className="text-red-300 text-sm">{error}</p>
               </div>
             )}
 
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-dark-text-secondary mb-2">
                   Correo Electrónico
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="text-gray-400" size={20} />
+                    <Mail className="text-dark-text-muted" size={20} />
                   </div>
                   <input
                     id="email"
@@ -113,18 +113,18 @@ const Login: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="tu@email.com"
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all placeholder:text-dark-text-muted"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-dark-text-secondary mb-2">
                   Contraseña
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="text-gray-400" size={20} />
+                    <Lock className="text-dark-text-muted" size={20} />
                   </div>
                   <input
                     id="password"
@@ -133,7 +133,7 @@ const Login: React.FC = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-dark-bg-secondary border border-dark-border text-dark-text rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all placeholder:text-dark-text-muted"
                   />
                 </div>
               </div>
@@ -151,8 +151,8 @@ const Login: React.FC = () => {
             </form>
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-center text-sm text-gray-500">
+            <div className="mt-8 pt-6 border-t border-dark-border">
+              <p className="text-center text-sm text-dark-text-muted">
                 Sistema PEC - Pharma Elite Care
               </p>
             </div>

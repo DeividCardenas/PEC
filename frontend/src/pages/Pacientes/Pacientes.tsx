@@ -268,7 +268,7 @@ const Pacientes = () => {
   };
 
   // Calcular edad
-  const calcularEdad = (fechaNacimiento: string | null) => {
+  const calcularEdad = (fechaNacimiento: string | null | undefined) => {
     if (!fechaNacimiento) return "N/A";
     const hoy = new Date();
     const nacimiento = new Date(fechaNacimiento);
@@ -365,42 +365,41 @@ const Pacientes = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => navigate("/Menu")} icon={<ArrowLeft size={20} />}>
-                Volver
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <Users size={32} />
-                  Gestión de Pacientes
-                </h1>
-                <p className="text-gray-600 mt-1">Administra los pacientes y su información médica</p>
-              </div>
-            </div>
-            <PermissionGuard permission="crear_pacientes">
-              <Button
-                variant="success"
-                onClick={() => {
-                  resetForm();
-                  setShowCreateModal(true);
-                }}
-                icon={<UserPlus size={20} />}
-              >
-                Nuevo Paciente
-              </Button>
-            </PermissionGuard>
-          </div>
+      <header className="bg-dark-card border-b border-dark-border shadow-md p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/Menu")}
+            className="flex items-center text-dark-text hover:text-primary-400 transition-colors px-4 py-2 rounded-lg hover:bg-dark-bg"
+          >
+            <ArrowLeft size={24} className="mr-2" />
+            <span className="font-medium">Volver al Menú</span>
+          </button>
+          <h1 className="text-3xl font-bold text-dark-text flex items-center gap-2">
+            <Users size={32} />
+            Gestión de Pacientes
+          </h1>
+          <PermissionGuard permission="crear_pacientes">
+            <Button
+              variant="success"
+              onClick={() => {
+                resetForm();
+                setShowCreateModal(true);
+              }}
+              icon={<UserPlus size={20} />}
+            >
+              Nuevo Paciente
+            </Button>
+          </PermissionGuard>
         </div>
-      </div>
+      </header>
 
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
       {/* Estadísticas */}
       {estadisticas && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card hoverable>
               <CardContent>
@@ -912,6 +911,8 @@ const Pacientes = () => {
           </Button>
         </div>
       </Modal>
+        </div>
+      </div>
     </div>
   );
 };

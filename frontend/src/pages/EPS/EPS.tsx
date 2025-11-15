@@ -47,11 +47,11 @@ const EPSPage = () => {
 
   return (
 
-    <div className="min-h-screen bg-sky-900 flex flex-col">
-      <header className="bg-sky-800 shadow-lg p-4 flex items-center">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
+      <header className="bg-primary-900 border-b border-primary-800 shadow-lg p-4 flex items-center">
         <button
           onClick={() => navigate('/Menu')}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-sky-700"
+          className="flex items-center text-white hover:text-primary-300 transition-colors px-4 py-2 rounded-lg hover:bg-primary-800"
         >
           <ArrowLeft size={24} className="mr-2" />
           <span className="font-medium">Volver al Menú</span>
@@ -60,16 +60,16 @@ const EPSPage = () => {
       <div className="flex-1 p-6 flex flex-col items-center">
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-2xl mb-6 relative">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-text-muted" />
             <input
               type="text"
               placeholder="Buscar EPS..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full p-3 pl-12 rounded-lg bg-white shadow-xl border border-gray-300 text-gray-900 focus:ring-2 focus:ring-sky-500"
+              className="w-full p-3 pl-12 rounded-lg bg-dark-bg-secondary shadow-xl border border-dark-border text-dark-text placeholder:text-dark-text-muted focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+              <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-dark-text-secondary hover:text-dark-text">
                 <X />
               </button>
             )}
@@ -77,9 +77,9 @@ const EPSPage = () => {
         </motion.div>
 
         {/* Mensaje de error */}
-        {error && <div className="text-red-500 mb-4">{error}</div>}
+        {error && <div className="text-red-400 mb-4">{error}</div>}
         {loading ? (
-          <Loader2 className="animate-spin text-white" size={32} />
+          <Loader2 className="animate-spin text-primary-500" size={32} />
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
             {epsList.length > 0 ? (
@@ -89,16 +89,16 @@ const EPSPage = () => {
                     key={eps.id_eps}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-5 bg-white shadow-xl rounded-lg flex flex-col items-center cursor-pointer transition-transform"
+                    className="p-5 bg-dark-card border border-dark-border shadow-xl rounded-lg flex flex-col items-center cursor-pointer transition-transform hover:bg-dark-card-hover"
                     onClick={() => setSelectedEPS(eps)}
                   >
-                    <Building2 size={40} className="text-indigo-900 mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-800">{eps.nombre}</h3>
+                    <Building2 size={40} className="text-primary-500 mb-3" />
+                    <h3 className="text-lg font-semibold text-dark-text">{eps.nombre}</h3>
                   </motion.button>
                 ) : null
               )
             ) : (
-              <div className="text-gray-500">No hay EPS disponibles</div>
+              <div className="text-dark-text-secondary">No hay EPS disponibles</div>
             )}
           </motion.div>
         )}
@@ -118,19 +118,19 @@ const EPSPage = () => {
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              className="bg-sky-900 p-6 rounded-3xl shadow-2xl max-w-md w-full"
+              className="bg-dark-card border border-dark-border p-6 rounded-3xl shadow-2xl max-w-md w-full"
             >
-              <h2 className="text-2xl font-bold text-white">Tarifarios de {selectedEPS.nombre}</h2>
+              <h2 className="text-2xl font-bold text-dark-text">Tarifarios de {selectedEPS.nombre}</h2>
               <ul className="mt-4 space-y-4">
                 {selectedEPS.tarifarios.length > 0 ? (
                   selectedEPS.tarifarios.map((tarifario) =>
                     tarifario.id_tarifario ? (
                       <li
                         key={tarifario.id_tarifario}
-                        className="bg-sky-800 p-4 rounded-lg hover:bg-sky-700 transition cursor-pointer"
+                        className="bg-dark-bg-secondary border border-dark-border p-4 rounded-lg hover:bg-dark-card-hover transition cursor-pointer"
                       >
                         <Link to={`/tarifario/${tarifario.id_tarifario}`} className="block">
-                          <h3 className="text-xl font-semibold text-white mb-1">
+                          <h3 className="text-xl font-semibold text-dark-text mb-1">
                             {tarifario.nombre}
                           </h3>
                         </Link>
@@ -138,14 +138,14 @@ const EPSPage = () => {
                     ) : null
                   )
                 ) : (
-                  <li className="text-gray-300">Sin tarifarios asociados</li>
+                  <li className="text-dark-text-secondary">Sin tarifarios asociados</li>
                 )}
               </ul>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedEPS(null)}
-                className="mt-6 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                className="mt-6 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
               >
                 Cerrar
               </motion.button>

@@ -38,7 +38,7 @@ import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import TimelineOrden from "../../components/TimelineOrden";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 interface ProductoOrden {
   id_producto: number;
@@ -492,99 +492,105 @@ const OrdenesCompra = () => {
   const totales = calcularTotales();
 
   return (
-    <div className="min-h-screen bg-sky-900 flex flex-col">
-      <header className="bg-sky-800 shadow-lg p-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate("/Menu")}
-          className="flex items-center text-white hover:text-gray-200 transition-colors px-4 py-2 rounded-lg hover:bg-sky-700"
-        >
-          <ArrowLeft size={24} className="mr-2" />
-          <span className="font-medium">Volver al Menú</span>
-        </button>
-        <h1 className="text-2xl font-bold text-white">Órdenes de Compra</h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition-colors"
-        >
-          <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          Nueva Orden
-        </button>
+    <div className="min-h-screen bg-dark-bg flex flex-col">
+      <header className="bg-dark-card border-b border-dark-border shadow-md p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/Menu")}
+            className="flex items-center text-dark-text hover:text-primary-400 transition-colors px-4 py-2 rounded-lg hover:bg-dark-bg"
+          >
+            <ArrowLeft size={24} className="mr-2" />
+            <span className="font-medium">Volver al Menú</span>
+          </button>
+          <h1 className="text-3xl font-bold text-dark-text">Órdenes de Compra</h1>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition-colors"
+          >
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            Nueva Orden
+          </button>
+        </div>
       </header>
 
       {/* Estadísticas */}
       {estadisticas && (
-        <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
-          <div className="bg-white rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Total Órdenes</p>
-            <p className="text-2xl font-bold text-indigo-900">{estadisticas.totalOrdenes}</p>
-          </div>
-          <div className="bg-yellow-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Pendientes</p>
-            <p className="text-2xl font-bold text-yellow-800">{estadisticas.ordenesPendientes}</p>
-          </div>
-          <div className="bg-green-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Aprobadas</p>
-            <p className="text-2xl font-bold text-green-800">{estadisticas.ordenesAprobadas}</p>
-          </div>
-          <div className="bg-cyan-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">En Proceso</p>
-            <p className="text-2xl font-bold text-cyan-800">{estadisticas.ordenesEnProceso || 0}</p>
-          </div>
-          <div className="bg-blue-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Completadas</p>
-            <p className="text-2xl font-bold text-blue-800">{estadisticas.ordenesCompletadas}</p>
-          </div>
-          <div className="bg-red-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Rechazadas</p>
-            <p className="text-2xl font-bold text-red-800">{estadisticas.ordenesRechazadas}</p>
-          </div>
-          <div className="bg-indigo-100 rounded-lg p-4 shadow-md">
-            <p className="text-gray-600 text-sm">Monto Total</p>
-            <p className="text-xl font-bold text-indigo-800">
-              {new Intl.NumberFormat("es-CO", {
-                style: "currency",
-                currency: "COP",
-                minimumFractionDigits: 0,
-              }).format(Number(estadisticas.montoTotal))}
-            </p>
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+            <div className="bg-dark-card border border-dark-border rounded-xl p-4 shadow-md">
+              <p className="text-dark-text-secondary text-sm">Total Órdenes</p>
+              <p className="text-2xl font-bold text-primary-400">{estadisticas.totalOrdenes}</p>
+            </div>
+            <div className="bg-dark-card border border-yellow-700 rounded-xl p-4 shadow-md">
+              <p className="text-dark-text-secondary text-sm">Pendientes</p>
+              <p className="text-2xl font-bold text-yellow-400">{estadisticas.ordenesPendientes}</p>
+            </div>
+            <div className="bg-dark-card border border-green-700 rounded-xl p-4 shadow-md">
+              <p className="text-dark-text-secondary text-sm">Aprobadas</p>
+              <p className="text-2xl font-bold text-green-400">{estadisticas.ordenesAprobadas}</p>
+            </div>
+            <div className="bg-dark-card border border-cyan-700 rounded-xl p-4 shadow-md">
+              <p className="text-dark-text-secondary text-sm">En Proceso</p>
+              <p className="text-2xl font-bold text-cyan-400">{estadisticas.ordenesEnProceso || 0}</p>
+            </div>
+            <div className="bg-dark-card border border-blue-700 rounded-xl p-4 shadow-md">
+              <p className="text-dark-text-secondary text-sm">Completadas</p>
+              <p className="text-2xl font-bold text-blue-400">{estadisticas.ordenesCompletadas}</p>
+            </div>
+            <div className="bg-dark-card border border-red-700 rounded-xl p-4 shadow-md">
+              <p className="text-dark-text-secondary text-sm">Rechazadas</p>
+              <p className="text-2xl font-bold text-red-400">{estadisticas.ordenesRechazadas}</p>
+            </div>
+            <div className="bg-dark-card border border-primary-700 rounded-xl p-4 shadow-md">
+              <p className="text-dark-text-secondary text-sm">Monto Total</p>
+              <p className="text-xl font-bold text-primary-300">
+                {new Intl.NumberFormat("es-CO", {
+                  style: "currency",
+                  currency: "COP",
+                  minimumFractionDigits: 0,
+                }).format(Number(estadisticas.montoTotal))}
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="flex-1 p-4">
-        {/* Filtros */}
-        <div className="mb-4 flex flex-wrap gap-4 items-center">
-          <div className="relative w-full sm:max-w-xs">
-            <input
-              type="text"
-              placeholder="Buscar por número, proveedor..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-zinc-100 rounded-lg p-2 text-gray-950 w-full shadow-md pr-8 text-sm"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-950 text-lg"
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            )}
-          </div>
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Filtros */}
+          <div className="mb-6 flex flex-wrap gap-4 items-center">
+            <div className="relative w-full sm:max-w-xs flex-1 min-w-[250px]">
+              <input
+                type="text"
+                placeholder="Buscar por número, proveedor..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="bg-dark-card border border-dark-border rounded-xl p-2.5 text-dark-text w-full shadow-md pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-text-secondary hover:text-dark-text text-lg"
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+              )}
+            </div>
 
-          <select
-            value={estadoFilter}
-            onChange={(e) => setEstadoFilter(e.target.value)}
-            className="bg-zinc-100 text-black rounded-md p-2 shadow-sm text-sm"
-          >
-            <option value="">Todos los estados</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="aprobada">Aprobada</option>
-            <option value="en_proceso">En Proceso</option>
-            <option value="completada">Completada</option>
-            <option value="rechazada">Rechazada</option>
-            <option value="cancelada">Cancelada</option>
-          </select>
+            <select
+              value={estadoFilter}
+              onChange={(e) => setEstadoFilter(e.target.value)}
+              className="bg-dark-card border border-dark-border text-dark-text rounded-xl p-2.5 shadow-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aprobada">Aprobada</option>
+              <option value="en_proceso">En Proceso</option>
+              <option value="completada">Completada</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
         </div>
 
         {/* Paginación */}
@@ -594,51 +600,51 @@ const OrdenesCompra = () => {
           onPageChange={setCurrentPage}
         />
 
-        {/* Tabla de órdenes */}
-        {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <LoadingSpinner size="lg" color="text-white" text="Cargando órdenes..." />
-          </div>
-        ) : (
-          <div className="overflow-x-auto shadow-lg rounded-lg">
-            <table className="min-w-full text-sm">
-              <thead className="p-3 border-b text-center text-white bg-indigo-900">
-                <tr>
-                  <th className="p-2">N° Orden</th>
-                  <th className="p-2">Proveedor</th>
-                  <th className="p-2">Fecha</th>
-                  <th className="p-2">Estado</th>
-                  <th className="p-2">Items</th>
-                  <th className="p-2">Total</th>
-                  <th className="p-2">Creado Por</th>
-                  <th className="p-2">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="bg-stone-200">
-                {ordenes.length > 0 ? (
-                  ordenes.map((orden) => (
-                    <tr key={orden.id_orden_compra} className="hover:bg-violet-300">
-                      <td className="p-2 text-center font-medium">{orden.numero_orden}</td>
-                      <td className="p-2 text-center">{orden.proveedor?.nombre || "-"}</td>
-                      <td className="p-2 text-center">
-                        {new Date(orden.fecha_orden).toLocaleDateString("es-CO")}
-                      </td>
-                      <td className="p-2 text-center flex justify-center">
-                        {getEstadoBadge(orden.estado)}
-                      </td>
-                      <td className="p-2 text-center">
-                        <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
-                          {orden._count?.detalles || 0}
-                        </span>
-                      </td>
-                      <td className="p-2 text-center font-semibold">
-                        {new Intl.NumberFormat("es-CO", {
-                          style: "currency",
-                          currency: "COP",
-                          minimumFractionDigits: 0,
-                        }).format(Number(orden.total))}
-                      </td>
-                      <td className="p-2 text-center">{orden.creado_por?.username || "-"}</td>
+          {/* Tabla de órdenes */}
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <LoadingSpinner size="lg" color="text-primary-400" text="Cargando órdenes..." />
+            </div>
+          ) : (
+            <div className="overflow-x-auto shadow-lg rounded-xl border border-dark-border">
+              <table className="min-w-full text-sm">
+                <thead className="p-3 border-b border-dark-border text-center text-dark-text bg-dark-card">
+                  <tr>
+                    <th className="p-3">N° Orden</th>
+                    <th className="p-3">Proveedor</th>
+                    <th className="p-3">Fecha</th>
+                    <th className="p-3">Estado</th>
+                    <th className="p-3">Items</th>
+                    <th className="p-3">Total</th>
+                    <th className="p-3">Creado Por</th>
+                    <th className="p-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-dark-bg">
+                  {ordenes.length > 0 ? (
+                    ordenes.map((orden) => (
+                      <tr key={orden.id_orden_compra} className="border-b border-dark-border hover:bg-dark-card transition-colors">
+                        <td className="p-3 text-center font-medium text-dark-text">{orden.numero_orden}</td>
+                        <td className="p-3 text-center text-dark-text">{orden.proveedor?.nombre || "-"}</td>
+                        <td className="p-3 text-center text-dark-text-secondary">
+                          {new Date(orden.fecha_orden).toLocaleDateString("es-CO")}
+                        </td>
+                        <td className="p-3 text-center flex justify-center">
+                          {getEstadoBadge(orden.estado)}
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="px-2 py-1 bg-primary-900/40 border border-primary-700 text-primary-300 rounded-full text-xs font-semibold">
+                            {orden._count?.detalles || 0}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center font-semibold text-primary-300">
+                          {new Intl.NumberFormat("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                            minimumFractionDigits: 0,
+                          }).format(Number(orden.total))}
+                        </td>
+                        <td className="p-3 text-center text-dark-text-secondary">{orden.creado_por?.username || "-"}</td>
                       <td className="p-2 text-center">
                         <div className="flex justify-center gap-2 flex-wrap">
                           <button

@@ -261,7 +261,7 @@ const MostrarTransacciones = async (req, res) => {
         where,
         skip,
         take: limit,
-        orderBy: { fecha_emision: 'desc' }
+        orderBy: { fecha_creacion: 'desc' }
       })
     ]);
 

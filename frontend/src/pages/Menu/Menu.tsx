@@ -21,6 +21,7 @@ import {
 import { useAuth } from "../../context/useAuth";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
+import { hasPermission } from "../../config/roles";
 
 const Menu: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Menu: React.FC = () => {
     navigate("/");
   };
 
-  const menuSections = [
+  const allMenuSections = [
     {
       title: "Módulo de Compras",
       icon: ShoppingCart,
@@ -75,19 +76,25 @@ const Menu: React.FC = () => {
     },
   ];
 
+  // Filtrar las secciones y items basándose en los permisos del usuario
+  const menuSections = allMenuSections.map(section => ({
+    ...section,
+    items: section.items.filter(item => hasPermission(user?.rol || null, item.route))
+  })).filter(section => section.items.length > 0); // Solo mostrar secciones que tengan items
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-dark-bg">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-dark-card border-b border-dark-border shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-glow-primary">
                 <Hospital className="text-white" size={28} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Panel de Control</h1>
-                <p className="text-gray-600 mt-1">Bienvenido, {user?.email || 'Usuario'}</p>
+                <h1 className="text-3xl font-bold text-dark-text">Panel de Control</h1>
+                <p className="text-dark-text-secondary mt-1">Bienvenido, {user?.email || 'Usuario'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -119,10 +126,10 @@ const Menu: React.FC = () => {
             <div key={idx} className="animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
               {/* Section Header */}
               <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-xl bg-${section.color}-100 flex items-center justify-center`}>
-                  <section.icon className={`text-${section.color}-600`} size={22} />
+                <div className={`w-10 h-10 rounded-xl bg-primary-900/30 border border-primary-700 flex items-center justify-center`}>
+                  <section.icon className="text-primary-400" size={22} />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
+                <h2 className="text-2xl font-bold text-dark-text">{section.title}</h2>
               </div>
 
               {/* Section Items */}
@@ -132,15 +139,15 @@ const Menu: React.FC = () => {
                     key={item.route}
                     hoverable
                     onClick={() => handleNavigation(item.route)}
-                    className="group cursor-pointer border border-gray-200"
+                    className="group cursor-pointer border border-dark-border hover:border-primary-600 transition-colors"
                     padding="lg"
                   >
                     <div className="flex flex-col items-center text-center">
-                      <div className={`w-14 h-14 rounded-2xl bg-${section.color}-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                        <item.icon className={`text-${section.color}-600`} size={28} />
+                      <div className="w-14 h-14 rounded-2xl bg-primary-900/40 border border-primary-700 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-glow-primary transition-all duration-200">
+                        <item.icon className="text-primary-400 group-hover:text-primary-300" size={28} />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.name}</h3>
-                      <p className="text-sm text-gray-500">{item.description}</p>
+                      <h3 className="text-lg font-semibold text-dark-text mb-1">{item.name}</h3>
+                      <p className="text-sm text-dark-text-secondary">{item.description}</p>
                     </div>
                   </Card>
                 ))}
@@ -151,7 +158,7 @@ const Menu: React.FC = () => {
 
         {/* Footer Info */}
         <div className="mt-12 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-dark-text-muted">
             Sistema PEC - Pharma Elite Care | Versión 1.0 | {new Date().getFullYear()}
           </p>
         </div>

@@ -4,7 +4,9 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { ArrowLeft } from "lucide-react";
 import {
   obtenerAlertasStockBajo,
   obtenerMovimientosInventario,
@@ -17,6 +19,7 @@ import {
 } from "../../services/Inventario/inventarioService";
 
 const ControlInventario: React.FC = () => {
+  const navigate = useNavigate();
   // ===== ESTADOS =====
   const [estadisticas, setEstadisticas] = useState<EstadisticasInventario | null>(null);
   const [alertasStock, setAlertasStock] = useState<ProductoInventario[]>([]);
@@ -257,16 +260,24 @@ const ControlInventario: React.FC = () => {
 
   // ===== RENDER =====
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Control de Inventario
-        </h1>
-        <p className="text-gray-600">
-          Gestión y monitoreo de niveles de stock - RF003
-        </p>
-      </div>
+      <header className="bg-dark-card border-b border-dark-border shadow-md p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/Menu")}
+            className="flex items-center text-dark-text hover:text-primary-400 transition-colors px-4 py-2 rounded-lg hover:bg-dark-bg"
+          >
+            <ArrowLeft size={24} className="mr-2" />
+            <span className="font-medium">Volver al Menú</span>
+          </button>
+          <h1 className="text-3xl font-bold text-dark-text">Control de Inventario</h1>
+          <div className="w-40"></div> {/* Spacer para centrar el título */}
+        </div>
+      </header>
+
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
 
       {/* Estadísticas */}
       {estadisticas && (
@@ -799,6 +810,8 @@ const ControlInventario: React.FC = () => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };

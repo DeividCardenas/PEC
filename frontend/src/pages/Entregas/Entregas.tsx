@@ -20,7 +20,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { usePermissions, PermissionGuard } from "../../hooks/usePermissions";
+import { usePermissions } from "../../hooks/usePermissions";
 import {
   fetchEntregas,
   fetchEntrega,
@@ -355,7 +355,7 @@ const Entregas: React.FC = () => {
 
   const getEstadoBadgeVariant = (estado: string): "default" | "warning" | "info" | "success" | "danger" => {
     switch (estado) {
-      case "Pendiente":
+      case "Pendiente de Despacho":
         return "warning";
       case "En Preparación":
         return "info";
@@ -428,32 +428,28 @@ const Entregas: React.FC = () => {
             title="Ver detalles"
           />
           {row.estado !== "Cancelado" && row.estado !== "Entregado" && (
-            <PermissionGuard permission="despachar_entregas">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setSelectedEntrega(row);
-                  setShowEstadoModal(true);
-                }}
-                icon={<Repeat size={16} className="text-purple-600" />}
-                title="Cambiar estado"
-              />
-            </PermissionGuard>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setSelectedEntrega(row);
+                setShowEstadoModal(true);
+              }}
+              icon={<Repeat size={16} className="text-purple-600" />}
+              title="Cambiar estado"
+            />
           )}
           {row.estado !== "Cancelado" && row.estado !== "Entregado" && (
-            <PermissionGuard permission="cancelar_entregas">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setSelectedEntrega(row);
-                  setShowCancelarModal(true);
-                }}
-                icon={<Ban size={16} className="text-red-600" />}
-                title="Cancelar entrega"
-              />
-            </PermissionGuard>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setSelectedEntrega(row);
+                setShowCancelarModal(true);
+              }}
+              icon={<Ban size={16} className="text-red-600" />}
+              title="Cancelar entrega"
+            />
           )}
         </div>
       ),
@@ -465,35 +461,32 @@ const Entregas: React.FC = () => {
   // ============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-16">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => navigate("/Menu")} icon={<ArrowLeft size={20} />}>
-                Volver
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                  <Package size={32} />
-                  Gestión de Entregas
-                </h1>
-                <p className="text-gray-600 mt-1">Pedidos de entrega a pacientes con control de inventario</p>
-              </div>
-            </div>
-            <PermissionGuard permission="crear_entregas">
-              <Button variant="success" onClick={() => setShowCreateModal(true)} icon={<Plus size={20} />}>
-                Nueva Entrega
-              </Button>
-            </PermissionGuard>
-          </div>
+      <header className="bg-dark-card border-b border-dark-border shadow-md p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/Menu")}
+            className="flex items-center text-dark-text hover:text-primary-400 transition-colors px-4 py-2 rounded-lg hover:bg-dark-bg"
+          >
+            <ArrowLeft size={24} className="mr-2" />
+            <span className="font-medium">Volver al Menú</span>
+          </button>
+          <h1 className="text-3xl font-bold text-dark-text flex items-center gap-2">
+            <Package size={32} />
+            Gestión de Entregas
+          </h1>
+          <Button variant="success" onClick={() => setShowCreateModal(true)} icon={<Plus size={20} />}>
+            Nueva Entrega
+          </Button>
         </div>
-      </div>
+      </header>
 
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
       {/* Estadísticas */}
       {estadisticas && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <Card hoverable>
               <CardContent>
@@ -587,43 +580,48 @@ const Entregas: React.FC = () => {
         <Card>
           <CardContent>
             {/* Filtros */}
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Input
-                variant="search"
-                placeholder="Número de pedido, paciente..."
-                value={search}
-                onChange={handleSearchChange}
-                clearable
-                onClear={() => {
-                  setSearch("");
-                  setCurrentPage(1);
-                }}
-              />
+            <div className="mb-6 space-y-4">
+              {/* Primera fila: Búsqueda y Estado */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  variant="search"
+                  placeholder="Número de pedido, paciente..."
+                  value={search}
+                  onChange={handleSearchChange}
+                  clearable
+                  onClear={() => {
+                    setSearch("");
+                    setCurrentPage(1);
+                  }}
+                />
 
-              <div>
-                <select
-                  value={estadoFilter}
-                  onChange={handleEstadoFilterChange}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
-                >
-                  <option value="">Todos los estados</option>
-                  {ESTADOS_ENTREGA.map((estado) => (
-                    <option key={estado} value={estado}>
-                      {estado}
-                    </option>
-                  ))}
-                </select>
+                <div>
+                  <label className="block text-sm font-medium text-dark-text mb-2">Estado</label>
+                  <select
+                    value={estadoFilter}
+                    onChange={handleEstadoFilterChange}
+                    className="w-full px-4 py-2.5 border border-dark-border rounded-lg bg-dark-card text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                  >
+                    <option value="">Todos los estados</option>
+                    {ESTADOS_ENTREGA.map((estado) => (
+                      <option key={estado} value={estado}>
+                        {estado}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <Input label="Desde" type="date" value={fechaDesde} onChange={handleFechaDesdeChange} />
+              {/* Segunda fila: Fechas y Botón limpiar */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <Input label="Desde" type="date" value={fechaDesde} onChange={handleFechaDesdeChange} />
 
-              <Input label="Hasta" type="date" value={fechaHasta} onChange={handleFechaHastaChange} />
-            </div>
+                <Input label="Hasta" type="date" value={fechaHasta} onChange={handleFechaHastaChange} />
 
-            <div className="mb-6 flex justify-end">
-              <Button variant="ghost" onClick={handleLimpiarFiltros}>
-                Limpiar filtros
-              </Button>
+                <Button variant="ghost" onClick={handleLimpiarFiltros} className="w-full md:w-auto">
+                  Limpiar filtros
+                </Button>
+              </div>
             </div>
 
             {/* Paginación */}
@@ -707,6 +705,8 @@ const Entregas: React.FC = () => {
           onSubmit={handleCancelar}
         />
       )}
+      </div>
+    </div>
     </div>
   );
 };

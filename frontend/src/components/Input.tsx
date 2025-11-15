@@ -37,18 +37,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   const hasError = !!error;
   const hasSuccess = !!success;
 
-  const baseInputStyles = 'px-4 py-2.5 border rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0';
+  const baseInputStyles = 'px-4 py-2.5 border rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 text-dark-text';
 
   const variantStyles = {
-    default: 'bg-white',
-    search: 'bg-gray-50 border-gray-200 focus:bg-white'
+    default: 'bg-dark-card',
+    search: 'bg-dark-bg-secondary border-dark-border focus:bg-dark-card'
   };
 
   const stateStyles = hasError
-    ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+    ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
     : hasSuccess
-    ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
-    : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500';
+    ? 'border-green-400 focus:border-green-500 focus:ring-green-500'
+    : 'border-dark-border focus:border-primary-500 focus:ring-primary-500';
 
   const widthStyles = fullWidth ? 'w-full' : '';
 
@@ -69,7 +69,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   return (
     <div className={fullWidth ? 'w-full' : ''}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-dark-text-secondary mb-2">
           {label}
           {props.required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -107,7 +107,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
             <button
               type="button"
               onClick={handleClear}
-              className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+              className="text-dark-text-muted hover:text-dark-text-secondary transition-colors focus:outline-none"
             >
               <X size={20} />
             </button>
@@ -122,17 +122,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
       {(error || success || hint) && (
         <div className="mt-1.5">
           {error && (
-            <p className="text-sm text-red-600 flex items-center gap-1">
+            <p className="text-sm text-red-400 flex items-center gap-1">
               {error}
             </p>
           )}
           {success && !error && (
-            <p className="text-sm text-green-600 flex items-center gap-1">
+            <p className="text-sm text-green-400 flex items-center gap-1">
               {success}
             </p>
           )}
           {hint && !error && !success && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-dark-text-muted">
               {hint}
             </p>
           )}

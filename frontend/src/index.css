@@ -3,28 +3,45 @@
 /* Google Fonts - Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
+/* Dark theme base styles */
+html,
+body {
+  background-color: #0a0f1e;
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #0a0f1e;
+}
+
+/* Custom Scrollbar - Dark theme */
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f5f9;
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: #1e293b;
   border-radius: 4px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: #475569;
   border-radius: 4px;
   transition: background 0.2s;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
-/* Focus styles for accessibility */
+/* Focus styles for accessibility - Dark theme */
 *:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
@@ -37,8 +54,49 @@
   transition-duration: 150ms;
 }
 
-/* Selection color */
+/* Selection color - Dark theme */
 ::selection {
   background-color: #3b82f6;
   color: white;
+}
+
+/* Input autofill dark theme fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #162139 inset !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+  caret-color: #e2e8f0;
+}
+
+/* Dark theme overrides for better visibility */
+.bg-white {
+  background-color: #162139 !important;
+}
+
+.bg-gray-50 {
+  background-color: #111827 !important;
+}
+
+.bg-gray-100 {
+  background-color: #1e293b !important;
+}
+
+.text-gray-900 {
+  color: #e2e8f0 !important;
+}
+
+.text-gray-700 {
+  color: #94a3b8 !important;
+}
+
+.text-gray-600,
+.text-gray-500 {
+  color: #64748b !important;
+}
+
+.border-gray-200,
+.border-gray-300 {
+  border-color: #2d3f5f !important;
 }
