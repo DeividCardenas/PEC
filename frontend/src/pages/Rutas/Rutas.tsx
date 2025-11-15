@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   fetchRutas,
@@ -32,8 +33,9 @@ import {
 
 const Rutas: React.FC = () => {
   // ============================================================================
-  // PERMISOS
+  // HOOKS
   // ============================================================================
+  const navigate = useNavigate();
   const { tienePermiso } = usePermissions();
 
   // ============================================================================
@@ -180,7 +182,7 @@ const Rutas: React.FC = () => {
 
     try {
       const dataToSend: CrearRutaData = {
-        entregas: entregasSeleccionadas,
+        entregas_ids: entregasSeleccionadas,
         id_domiciliario: domiciliarioSeleccionado || undefined,
         fecha_programada: fechaProgramada || undefined,
         observaciones: observaciones || undefined,
@@ -212,7 +214,7 @@ const Rutas: React.FC = () => {
     }
 
     try {
-      await asignarDomiciliario(rutaSeleccionada.id_ruta, nuevoDomiciliarioId);
+      await asignarDomiciliario(rutaSeleccionada.id_ruta, { id_domiciliario: nuevoDomiciliarioId });
       toast.success("Domiciliario asignado exitosamente");
       setShowAssignModal(false);
       cargarRutas();
@@ -238,7 +240,7 @@ const Rutas: React.FC = () => {
     }
 
     try {
-      await cambiarEstadoRuta(rutaSeleccionada.id_ruta, nuevoEstado);
+      await cambiarEstadoRuta(rutaSeleccionada.id_ruta, { nuevo_estado: nuevoEstado });
       toast.success("Estado cambiado exitosamente");
       setShowChangeStatusModal(false);
       cargarRutas();
@@ -266,7 +268,7 @@ const Rutas: React.FC = () => {
     }
 
     try {
-      await cancelarRuta(rutaSeleccionada.id_ruta, motivoCancelacion);
+      await cancelarRuta(rutaSeleccionada.id_ruta, { motivo: motivoCancelacion });
       toast.success("Ruta cancelada exitosamente");
       setShowCancelModal(false);
       cargarRutas();
@@ -331,41 +333,43 @@ const Rutas: React.FC = () => {
   // RENDER
   // ============================================================================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-dark-bg flex flex-col">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              Optimización de Rutas
-            </h1>
-            <p className="text-gray-600">
-              Gestión de rutas optimizadas de entrega
-            </p>
-          </div>
+      <header className="bg-dark-card border-b border-dark-border shadow-md p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/Menu")}
+            className="flex items-center text-dark-text hover:text-primary-400 transition-colors px-4 py-2 rounded-lg hover:bg-dark-bg"
+          >
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Volver al Menú</span>
+          </button>
+
+          <h1 className="text-3xl font-bold text-dark-text flex items-center gap-2">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Optimización de Rutas
+          </h1>
+
           {tienePermiso("crear_rutas") && (
             <button
               onClick={handleCrearRuta}
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
+              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Nueva Ruta Optimizada
             </button>
           )}
         </div>
-      </div>
+      </header>
+
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
 
       {/* Estadísticas */}
       {estadisticas && (
@@ -485,7 +489,7 @@ const Rutas: React.FC = () => {
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Distancia Total</p>
                   <p className="text-3xl font-bold text-gray-800 mt-2">
-                    {estadisticas.distanciaTotal.toFixed(1)}
+                    {estadisticas.distanciaTotal ? estadisticas.distanciaTotal.toFixed(1) : '0.0'}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">kilómetros</p>
                 </div>
@@ -903,6 +907,8 @@ const Rutas: React.FC = () => {
         onClose={() => setShowCancelModal(false)}
         onSubmit={handleSubmitCancelar}
       />
+        </div>
+      </div>
     </div>
   );
 };

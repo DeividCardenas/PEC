@@ -2,7 +2,28 @@
  * Servicio para Gestión de Pacientes (RF007)
  */
 
-import { axiosInstance } from "../Shared/axiosInstance";
+import axios from "axios";
+
+// Crear instancia específica para pacientes
+const pacientesAxios = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL}/pacientes`,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Interceptor para incluir token de autenticación
+pacientesAxios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Interfaces
 export interface Paciente {
@@ -122,24 +143,24 @@ export const fetchPacientes = async (params: PacientesParams = {}): Promise<Paci
     queryParams.append("activo", params.activo);
   }
 
-  const response = await axiosInstance.get(`/pacientes?${queryParams.toString()}`);
-  return response.data.data;
+  const response = await pacientesAxios.get(`?${queryParams.toString()}`);
+  return response.data;
 };
 
 /**
  * Obtener un paciente por ID
  */
 export const fetchPaciente = async (id: number): Promise<PacienteResponse> => {
-  const response = await axiosInstance.get(`/pacientes/${id}`);
-  return response.data.data;
+  const response = await pacientesAxios.get(`/${id}`);
+  return response.data;
 };
 
 /**
  * Crear un nuevo paciente
  */
 export const createPaciente = async (data: CrearPacienteData): Promise<PacienteResponse> => {
-  const response = await axiosInstance.post("/pacientes", data);
-  return response.data.data;
+  const response = await pacientesAxios.post("", data);
+  return response.data;
 };
 
 /**
@@ -149,31 +170,31 @@ export const updatePaciente = async (
   id: number,
   data: ActualizarPacienteData
 ): Promise<PacienteResponse> => {
-  const response = await axiosInstance.put(`/pacientes/${id}`, data);
-  return response.data.data;
+  const response = await pacientesAxios.put(`/${id}`, data);
+  return response.data;
 };
 
 /**
  * Eliminar un paciente (soft delete)
  */
 export const deletePaciente = async (id: number): Promise<void> => {
-  await axiosInstance.delete(`/pacientes/${id}`);
+  await pacientesAxios.delete(`/${id}`);
 };
 
 /**
  * Reactivar un paciente
  */
 export const reactivarPaciente = async (id: number): Promise<PacienteResponse> => {
-  const response = await axiosInstance.put(`/pacientes/${id}/reactivar`);
-  return response.data.data;
+  const response = await pacientesAxios.put(`/${id}/reactivar`);
+  return response.data;
 };
 
 /**
  * Obtener estadísticas de pacientes
  */
 export const fetchEstadisticas = async (): Promise<EstadisticasResponse> => {
-  const response = await axiosInstance.get("/pacientes/estadisticas");
-  return response.data.data;
+  const response = await pacientesAxios.get("/estadisticas");
+  return response.data;
 };
 
 /**
@@ -182,6 +203,6 @@ export const fetchEstadisticas = async (): Promise<EstadisticasResponse> => {
 export const buscarPorIdentificacion = async (
   numero_identificacion: string
 ): Promise<PacienteResponse> => {
-  const response = await axiosInstance.get(`/pacientes/buscar/${numero_identificacion}`);
-  return response.data.data;
+  const response = await pacientesAxios.get(`/buscar/${numero_identificacion}`);
+  return response.data;
 };

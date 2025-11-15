@@ -91,11 +91,14 @@ const ReportesCompras = () => {
   const cargarReporte = async () => {
     setLoading(true);
     try {
+      console.log('Cargando reporte con filtros:', filtros);
       const response = await fetchReporteCompras(filtros);
+      console.log('Respuesta del reporte:', response);
       setReporte(response);
     } catch (error: any) {
       console.error("Error al cargar reporte:", error);
-      toast.error("Error al generar el reporte");
+      console.error("Error completo:", error.response?.data || error.message);
+      toast.error("Error al generar el reporte: " + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
@@ -207,22 +210,25 @@ const ReportesCompras = () => {
 
   return (
     <div className="min-h-screen bg-dark-bg flex flex-col">
-      <header className="bg-primary-900 border-b border-primary-800 shadow-lg p-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate("/Menu")}
-          className="flex items-center text-white hover:text-primary-300 transition-colors px-4 py-2 rounded-lg hover:bg-primary-800"
-        >
-          <ArrowLeft size={24} className="mr-2" />
-          <span className="font-medium">Volver al Menú</span>
-        </button>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <FontAwesomeIcon icon={faChartBar} />
-          Reportes de Compras
-        </h1>
-        <div className="w-32"></div>
+      <header className="bg-dark-card border-b border-dark-border shadow-md p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/Menu")}
+            className="flex items-center text-dark-text hover:text-primary-400 transition-colors px-4 py-2 rounded-lg hover:bg-dark-bg"
+          >
+            <ArrowLeft size={24} className="mr-2" />
+            <span className="font-medium">Volver al Menú</span>
+          </button>
+          <h1 className="text-3xl font-bold text-dark-text flex items-center gap-2">
+            <FontAwesomeIcon icon={faChartBar} />
+            Reportes de Compras
+          </h1>
+          <div className="w-40"></div>
+        </div>
       </header>
 
-      <div className="flex-1 p-4 space-y-4">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-4">
         {/* Filtros */}
         <div className="bg-dark-card border border-dark-border rounded-lg shadow-lg p-4">
           <div className="flex items-center gap-2 mb-4">
@@ -845,6 +851,13 @@ const ReportesCompras = () => {
                 )}
 
                 {/* Mensaje si no hay datos */}
+                {tabActiva === "reporte" && !reporte && (
+                  <div className="text-center py-12">
+                    <p className="text-dark-text-secondary text-lg">
+                      Haz clic en "Aplicar Filtros" para generar el reporte
+                    </p>
+                  </div>
+                )}
                 {tabActiva === "reporte" && reporte && reporte.ordenes.length === 0 && (
                   <div className="text-center py-12">
                     <p className="text-dark-text-secondary text-lg">
@@ -860,6 +873,7 @@ const ReportesCompras = () => {
               </>
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>

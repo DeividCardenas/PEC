@@ -3,7 +3,7 @@
  * Gestión de inventario y control de stock
  */
 
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient, Prisma } = require("@prisma/client");
 const {
   sendSuccess,
   sendError,
@@ -37,8 +37,13 @@ const ObtenerAlertasStockBajo = async (req, res) => {
     const limiteNum = Math.max(1, Math.min(100, parseInt(limite)));
     const skip = (paginaNum - 1) * limiteNum;
 
-    // Usar queryRaw para comparar dos columnas (stock_actual <= stock_minimo)
-    const productos = await prisma.$queryRaw`
+    // Validar ordenar_por y orden para prevenir SQL injection
+    const columnasValidas = ['stock_actual', 'stock_minimo', 'descripcion', 'cum'];
+    const ordenValido = orden === 'desc' ? 'DESC' : 'ASC';
+    const columnaOrden = columnasValidas.includes(ordenar_por) ? ordenar_por : 'stock_actual';
+
+    // Usar queryRawUnsafe para consultas dinámicas (ya validadas arriba)
+    const productos = await prisma.$queryRawUnsafe(`
       SELECT
         p.id_producto,
         p.cum,
@@ -50,14 +55,14 @@ const ObtenerAlertasStockBajo = async (req, res) => {
         p.stock_maximo,
         p.unidad_medida,
         p.precio_unidad,
-        p.id_laboratorio,
+        p.laboratorio_id,
         l.nombre as laboratorio_nombre
       FROM producto p
-      LEFT JOIN laboratorio l ON p.id_laboratorio = l.id_laboratorio
+      LEFT JOIN laboratorio l ON p.laboratorio_id = l.id_laboratorio
       WHERE p.stock_actual <= p.stock_minimo
-      ORDER BY p.${prisma.raw(ordenar_por)} ${prisma.raw(orden)}
+      ORDER BY p.${columnaOrden} ${ordenValido}
       LIMIT ${limiteNum} OFFSET ${skip}
-    `;
+    `);
 
     const totalResult = await prisma.$queryRaw`
       SELECT COUNT(*) as total
@@ -74,7 +79,7 @@ const ObtenerAlertasStockBajo = async (req, res) => {
       stock_minimo: Number(producto.stock_minimo) || 0,
       stock_maximo: Number(producto.stock_maximo) || 0,
       laboratorio: producto.laboratorio_nombre ? {
-        id_laboratorio: Number(producto.id_laboratorio),
+        id_laboratorio: Number(producto.laboratorio_id),
         nombre: producto.laboratorio_nombre
       } : null,
       deficit: Math.max(0, Number(producto.stock_minimo) - Number(producto.stock_actual)),

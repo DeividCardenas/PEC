@@ -10,7 +10,10 @@ interface LoginResponse {
     permisos: string[];
     tarifarios: number[]; // Añadimos los tarifarios
   };
-  userJWT: string;
+  userJWT: {
+    token: string;
+    expiresIn: string;
+  };
 }
 
 export const loginUser = async (
@@ -34,7 +37,7 @@ export const loginUser = async (
     const { usuario, userJWT } = response.data;
 
     return {
-      token: userJWT,
+      token: userJWT.token,
       usuario: {
         id: usuario.id_usuario,
         username: usuario.username,

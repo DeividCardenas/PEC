@@ -1,4 +1,43 @@
-import { axiosInstance } from "../Shared/axiosInstance";
+import axios from 'axios';
+
+// Crear instancia específica para inventario
+const inventarioAxios = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL}/inventario`,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Interceptor de request para añadir token de autenticación
+inventarioAxios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor de response para manejar errores de autenticación
+inventarioAxios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tarifarios');
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ==================== TIPOS ====================
 
@@ -121,7 +160,7 @@ export const obtenerAlertasStockBajo = async (
   ordenar_por: string = "stock_actual",
   orden: "asc" | "desc" = "asc"
 ): Promise<AlertasStockResponse> => {
-  const response = await axiosInstance.get("/inventario/alertas", {
+  const response = await inventarioAxios.get("/alertas", {
     params: { pagina, limite, ordenar_por, orden },
   });
   return response.data;
@@ -139,7 +178,7 @@ export const obtenerMovimientosInventario = async (
   fecha_inicio?: string,
   fecha_fin?: string
 ): Promise<MovimientosResponse> => {
-  const response = await axiosInstance.get("/inventario/movimientos", {
+  const response = await inventarioAxios.get("/movimientos", {
     params: {
       pagina,
       limite,
@@ -160,8 +199,8 @@ export const obtenerMovimientosProducto = async (
   id_producto: number,
   limite: number = 20
 ): Promise<MovimientosProductoResponse> => {
-  const response = await axiosInstance.get(
-    `/inventario/productos/${id_producto}/movimientos`,
+  const response = await inventarioAxios.get(
+    `/productos/${id_producto}/movimientos`,
     {
       params: { limite },
     }
@@ -176,7 +215,7 @@ export const obtenerMovimientosProducto = async (
 export const ajustarStock = async (
   datos: AjustarStockRequest
 ): Promise<any> => {
-  const response = await axiosInstance.post("/inventario/ajustar", datos);
+  const response = await inventarioAxios.post("/ajustar", datos);
   return response.data;
 };
 
@@ -188,8 +227,8 @@ export const actualizarStockMinimo = async (
   id_producto: number,
   datos: ActualizarStockMinimoRequest
 ): Promise<any> => {
-  const response = await axiosInstance.put(
-    `/inventario/productos/${id_producto}/stock-minimo`,
+  const response = await inventarioAxios.put(
+    `/productos/${id_producto}/stock-minimo`,
     datos
   );
   return response.data;
@@ -201,6 +240,6 @@ export const actualizarStockMinimo = async (
  */
 export const obtenerEstadisticasInventario =
   async (): Promise<EstadisticasResponse> => {
-    const response = await axiosInstance.get("/inventario/estadisticas");
+    const response = await inventarioAxios.get("/estadisticas");
     return response.data;
   };

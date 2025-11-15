@@ -172,16 +172,16 @@ export const formatearTiempoDesdeActualizacion = (fecha: string | null): string 
  * Obtener color según antigüedad de la ubicación
  */
 export const getColorActualizacion = (fecha: string | null): string => {
-  if (!fecha) return "text-gray-500";
+  if (!fecha) return "text-dark-text-secondary";
 
   const ahora = new Date();
   const actualizacion = new Date(fecha);
   const minutos = Math.floor((ahora.getTime() - actualizacion.getTime()) / 60000);
 
-  if (minutos < 5) return "text-green-600"; // Muy reciente
-  if (minutos < 15) return "text-blue-600"; // Reciente
-  if (minutos < 60) return "text-yellow-600"; // Algo antiguo
-  return "text-red-600"; // Muy antiguo
+  if (minutos < 5) return "text-green-400"; // Muy reciente
+  if (minutos < 15) return "text-blue-400"; // Reciente
+  if (minutos < 60) return "text-yellow-400"; // Algo antiguo
+  return "text-red-400"; // Muy antiguo
 };
 
 /**
