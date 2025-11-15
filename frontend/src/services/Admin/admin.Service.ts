@@ -18,11 +18,21 @@ interface UsuarioResponse {
   usuarios: Usuario[];
 }
 
-interface Usuario {
+export interface Usuario {
   id_usuario: number;
   username: string;
   email: string;
-  rol: { nombre: string };
+  estado?: boolean;
+  id_rol: number;
+  rol: {
+    id_rol: number;
+    nombre: string;
+  };
+}
+
+export interface Rol {
+  id_rol: number;
+  nombre: string;
 }
 
 interface EpsResponse {
@@ -71,10 +81,12 @@ interface Empresa {
 }
 
 // Interfaces para actualización
-interface UserUpdateData {
+export interface UserUpdateData {
   username?: string;
   email?: string;
-  rol_id?: number;
+  id_rol?: number;
+  estado?: boolean;
+  password?: string;
 }
 
 interface GenericUpdateData {
@@ -380,5 +392,17 @@ export const addProducto = async (productoData: any): Promise<any> => {
     console.error('Error al agregar producto:', error?.response?.data || error.message);
     const msg = error?.response?.data?.mensaje || error?.response?.data?.msg || error?.message || 'No se pudo agregar el producto';
     throw new Error(msg);
+  }
+};
+
+// Obtener todos los roles
+export const fetchRoles = async (): Promise<Rol[]> => {
+  try {
+    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
+    const response = await axios.get(`${baseURL}/rol`);
+    return response.data.roles || response.data;
+  } catch (error) {
+    console.error('Error al obtener roles:', error);
+    throw new Error('No se pudo obtener los roles');
   }
 };

@@ -21,6 +21,7 @@ import {
 import { useAuth } from "../../context/useAuth";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
+import { hasPermission } from "../../config/roles";
 
 const Menu: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Menu: React.FC = () => {
     navigate("/");
   };
 
-  const menuSections = [
+  const allMenuSections = [
     {
       title: "Módulo de Compras",
       icon: ShoppingCart,
@@ -74,6 +75,12 @@ const Menu: React.FC = () => {
       ]
     },
   ];
+
+  // Filtrar las secciones y items basándose en los permisos del usuario
+  const menuSections = allMenuSections.map(section => ({
+    ...section,
+    items: section.items.filter(item => hasPermission(user?.rol || null, item.route))
+  })).filter(section => section.items.length > 0); // Solo mostrar secciones que tengan items
 
   return (
     <div className="min-h-screen bg-dark-bg">

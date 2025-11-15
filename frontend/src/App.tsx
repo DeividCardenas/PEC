@@ -10,6 +10,7 @@ import Login from "./pages/Auth/Login";
 // Lazy loading para páginas principales
 const Menu = lazy(() => import("./pages/Menu/Menu"));
 const Productos = lazy(() => import("./pages/Productos/Productos"));
+const AccessDenied = lazy(() => import("./pages/AccessDenied/AccessDenied"));
 
 // Lazy loading para módulo Laboratorio
 const Laboratorios = lazy(() => import("./pages/Laboratorio/Laboratorio"));
@@ -34,7 +35,14 @@ const TarifariosList = lazy(() => import("./pages/Tarifario/TarifariosList"));
 
 // Lazy loading para módulo Admin (solo para administradores)
 const AdminPage = lazy(() => import("./pages/Admin/AdminPage"));
-const CrearPage = lazy(() => import("./pages/Admin/CrearPage"));
+const UsuariosPage = lazy(() => import("./pages/Admin/UsuariosPage"));
+const EPSManagement = lazy(() => import("./pages/Admin/EPSManagement"));
+const EmpresasManagement = lazy(() => import("./pages/Admin/EmpresasManagement"));
+const LaboratoriosManagement = lazy(() => import("./pages/Admin/LaboratoriosManagement"));
+const ProveedoresManagement = lazy(() => import("./pages/Admin/ProveedoresManagement"));
+const ProductosManagement = lazy(() => import("./pages/Admin/ProductosManagement"));
+const RolesManagement = lazy(() => import("./pages/Admin/RolesManagement"));
+const RespaldoManagement = lazy(() => import("./pages/Admin/RespaldoManagement"));
 
 // Lazy loading para módulo Compare
 const Compare = lazy(() => import("./pages/Compare/Compare"));
@@ -61,12 +69,13 @@ const App: React.FC = () => {
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/access-denied" element={<AccessDenied />} />
 
             {/* Rutas protegidas que requieren autenticación */}
             <Route
               path="/Menu"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requirePermission={false}>
                   <Menu />
                 </ProtectedRoute>
               }
@@ -218,10 +227,66 @@ const App: React.FC = () => {
               }
             />
             <Route
-              path="/Admin/Crear"
+              path="/Admin/Usuarios"
               element={
                 <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
-                  <CrearPage />
+                  <UsuariosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Admin/EPS"
+              element={
+                <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
+                  <EPSManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Admin/Empresas"
+              element={
+                <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
+                  <EmpresasManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Admin/Laboratorios"
+              element={
+                <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
+                  <LaboratoriosManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Admin/Proveedores"
+              element={
+                <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
+                  <ProveedoresManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Admin/Productos"
+              element={
+                <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
+                  <ProductosManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Admin/Roles"
+              element={
+                <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
+                  <RolesManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/Admin/Respaldo"
+              element={
+                <ProtectedRoute allowedRoles={["Administrador"]} redirectTo="/Menu">
+                  <RespaldoManagement />
                 </ProtectedRoute>
               }
             />

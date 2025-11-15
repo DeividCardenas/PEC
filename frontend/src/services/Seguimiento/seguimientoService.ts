@@ -2,10 +2,49 @@
  * Servicio de Seguimiento en Tiempo Real (RF010)
  */
 
-import { axiosInstance } from "../Shared/axiosInstance";
+import axios from "axios";
 import { Domiciliario } from "../Domiciliarios/domiciliariosService";
 import { Entrega } from "../Entregas/entregasService";
 import { Ruta } from "../Rutas/rutasService";
+
+// Crear instancia específica para seguimiento
+const seguimientoAxios = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL}/seguimiento`,
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Interceptor de request para añadir token de autenticación
+seguimientoAxios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor de response para manejar errores de autenticación
+seguimientoAxios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tarifarios");
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ============================================================================
 // INTERFACES
@@ -50,8 +89,8 @@ export const actualizarUbicacion = async (
   idDomiciliario: number,
   data: ActualizarUbicacionData
 ): Promise<UbicacionDomiciliario> => {
-  const response = await axiosInstance.put(
-    `/seguimiento/domiciliario/${idDomiciliario}/ubicacion`,
+  const response = await seguimientoAxios.put(
+    `/domiciliario/${idDomiciliario}/ubicacion`,
     data
   );
   return response.data.data;
@@ -63,8 +102,8 @@ export const actualizarUbicacion = async (
 export const fetchUbicacionDomiciliario = async (
   idDomiciliario: number
 ): Promise<DomiciliarioConUbicacion> => {
-  const response = await axiosInstance.get(
-    `/seguimiento/domiciliario/${idDomiciliario}/ubicacion`
+  const response = await seguimientoAxios.get(
+    `/domiciliario/${idDomiciliario}/ubicacion`
   );
   return response.data.data.domiciliario;
 };
@@ -80,7 +119,7 @@ export const fetchUbicacionesDomiciliarios = async (
     params.append("activos_solo", activosSolo.toString());
   }
 
-  const response = await axiosInstance.get(`/seguimiento/domiciliarios?${params.toString()}`);
+  const response = await seguimientoAxios.get(`/domiciliarios?${params.toString()}`);
   return response.data.data;
 };
 
@@ -90,7 +129,7 @@ export const fetchUbicacionesDomiciliarios = async (
 export const fetchSeguimientoRuta = async (
   idRuta: number
 ): Promise<{ ruta: RutaConSeguimiento }> => {
-  const response = await axiosInstance.get(`/seguimiento/ruta/${idRuta}`);
+  const response = await seguimientoAxios.get(`/ruta/${idRuta}`);
   return response.data.data;
 };
 
@@ -101,7 +140,7 @@ export const fetchRutasActivas = async (): Promise<{
   rutas: RutaConSeguimiento[];
   total: number;
 }> => {
-  const response = await axiosInstance.get(`/seguimiento/rutas-activas`);
+  const response = await seguimientoAxios.get(`/rutas-activas`);
   return response.data.data;
 };
 
@@ -111,8 +150,8 @@ export const fetchRutasActivas = async (): Promise<{
 export const simularMovimiento = async (
   idDomiciliario: number
 ): Promise<UbicacionDomiciliario> => {
-  const response = await axiosInstance.post(
-    `/seguimiento/domiciliario/${idDomiciliario}/simular-movimiento`
+  const response = await seguimientoAxios.post(
+    `/domiciliario/${idDomiciliario}/simular-movimiento`
   );
   return response.data.data;
 };

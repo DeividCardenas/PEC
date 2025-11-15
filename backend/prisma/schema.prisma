@@ -210,23 +210,23 @@ model Proveedor {
 
 /// Transacciones de compras con proveedores
 model Transaccion {
-  id_transaccion Int      @id @default(autoincrement()) @map("id_transaccion")
-  id_proveedor   Int      @map("proveedor_id")
-  tipo           String                                                     // "compra", "devolucion", "pago"
-  concepto       String                                                     // Descripción de la transacción
-  monto          Decimal                                                    // Monto de la transacción
-  cantidad       Int?                                                       // Cantidad de productos (si aplica)
-  numero_factura String?                                                    // Número de factura
-  fecha_emision  DateTime @default(now()) @map("fecha_emision")            // Fecha de emisión
-  fecha_vencimiento DateTime? @map("fecha_vencimiento")                    // Fecha de vencimiento (si aplica)
-  estado         String   @default("pendiente")                            // "pendiente", "completada", "cancelada"
-  notas          String?  @db.Text                                         // Notas adicionales
+  id_transaccion      Int      @id @default(autoincrement()) @map("id_transaccion")
+  id_proveedor        Int      @map("proveedor_id")
+  tipo                String                                                     // "compra", "devolucion", "pago"
+  concepto            String                                                     // Descripción de la transacción
+  monto               Decimal                                                    // Monto de la transacción
+  cantidad            Int?                                                       // Cantidad de productos (si aplica)
+  numero_factura      String?                                                    // Número de factura
+  fecha_emision       DateTime? @map("fecha_emision") @db.Date                  // Fecha de emisión
+  fecha_vencimiento   DateTime? @map("fecha_vencimiento") @db.Date              // Fecha de vencimiento (si aplica)
+  estado              String?   @default("pendiente")                           // "pendiente", "completada", "cancelada"
+  notas               String?   @db.Text                                        // Notas adicionales
+  fecha_creacion      DateTime  @default(now()) @map("fecha_creacion")          // Fecha de creación del registro
+  fecha_actualizacion DateTime  @updatedAt @map("fecha_actualizacion")          // Fecha de actualización del registro
 
-  proveedor      Proveedor @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: Cascade)
+  proveedor           Proveedor @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: Cascade)
 
-  creado_en      DateTime @default(now()) @map("creado_en")
-  actualizado_en DateTime @updatedAt @map("actualizado_en")
-
+  @@index([id_proveedor], map: "proveedor_id")
   @@map("transacciones")
 }
 
