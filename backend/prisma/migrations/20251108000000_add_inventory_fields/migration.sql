@@ -1,7 +1,6 @@
 -- Add inventory fields to Producto table
--- Note: Fields already exist, this migration is marked as completed
--- ALTER TABLE `Producto`
--- ADD COLUMN `stock_actual` INT NOT NULL DEFAULT 0,
--- ADD COLUMN `stock_minimo` INT NOT NULL DEFAULT 0,
--- ADD COLUMN `stock_maximo` INT NULL,
--- ADD COLUMN `unidad_medida` VARCHAR(191) NOT NULL DEFAULT 'unidad';
+ALTER TABLE `Producto`
+ADD COLUMN `stock_actual` INT NOT NULL DEFAULT 0,
+ADD COLUMN `stock_minimo` INT NOT NULL DEFAULT 0,
+ADD COLUMN `stock_maximo` INT NULL,
+ADD COLUMN `unidad_medida` VARCHAR(191) NOT NULL DEFAULT 'unidad';
