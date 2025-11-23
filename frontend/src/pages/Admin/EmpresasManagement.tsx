@@ -49,6 +49,7 @@ const EmpresasManagement: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetchEmpresas({ limit: 100 });
+      console.log("Empresas recibidas del servicio:", response.empresas);
       setEmpresasList(response.empresas || []);
     } catch (error) {
       console.error("Error al cargar empresas:", error);

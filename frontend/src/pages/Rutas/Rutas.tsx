@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Eye, UserPlus, CheckCircle, XCircle } from "lucide-react";
 import {
   fetchRutas,
   fetchRuta,
@@ -23,6 +24,10 @@ import {
 import { fetchDomiciliarios, type Domiciliario } from "../../services/Domiciliarios/domiciliariosService";
 import { fetchEntregas, type Entrega } from "../../services/Entregas/entregasService";
 import { usePermissions } from "../../hooks/usePermissions";
+import Table, { Column } from "../../components/Table";
+import Card, { CardContent } from "../../components/Card";
+import Button from "../../components/Button";
+import Pagination from "../../components/Pagination";
 import {
   FormModal,
   DetailsModal,
@@ -80,6 +85,128 @@ const Rutas: React.FC = () => {
 
   // Form data para cancelar
   const [motivoCancelacion, setMotivoCancelacion] = useState<string>("");
+
+  // ============================================================================
+  // HELPERS
+  // ============================================================================
+  const formatearFechaCorta = (fecha: string | null | undefined): string => {
+    if (!fecha) return "N/A";
+    return new Date(fecha).toLocaleDateString("es-CO");
+  };
+
+  // ============================================================================
+  // DEFINICIÓN DE COLUMNAS
+  // ============================================================================
+  const rutasColumns: Column<Ruta>[] = [
+    {
+      key: 'numero_ruta',
+      title: 'Número de Ruta',
+      align: 'left',
+      render: (val) => <div className="font-medium text-gray-900">{val}</div>,
+    },
+    {
+      key: 'domiciliario',
+      title: 'Domiciliario',
+      align: 'left',
+      render: (val: any) => (
+        <div>
+          <div className="text-sm text-gray-900">
+            {val ? `${val.nombres} ${val.apellidos}` : 'Sin asignar'}
+          </div>
+          {val?.tipo_vehiculo && (
+            <div className="text-xs text-gray-500">{val.tipo_vehiculo}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'fecha_programada',
+      title: 'Fecha Programada',
+      align: 'left',
+      render: (val) => <div className="text-sm text-gray-900">{formatearFechaCorta(val)}</div>,
+    },
+    {
+      key: 'estado',
+      title: 'Estado',
+      align: 'center',
+      render: (val) => (
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getEstadoColor(val)}`}>
+          {val}
+        </span>
+      ),
+    },
+    {
+      key: '_count',
+      title: 'Entregas',
+      align: 'center',
+      render: (val: any) => <div className="text-sm text-gray-900">{val?.entregas || 0}</div>,
+    },
+    {
+      key: 'distancia_total_km',
+      title: 'Distancia',
+      align: 'center',
+      render: (val) => (
+        <div className="text-sm text-gray-900">
+          {val ? `${parseFloat(val).toFixed(1)} km` : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      key: 'tiempo_estimado_min',
+      title: 'Tiempo Est.',
+      align: 'center',
+      render: (val) => (
+        <div className="text-sm text-gray-900">
+          {val ? `${val} min` : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      key: 'id_ruta',
+      title: 'Acciones',
+      align: 'center',
+      render: (_, ruta) => (
+        <div className="flex justify-center gap-2">
+          {tienePermiso('ver_rutas') && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => cargarDetalleRuta(ruta.id_ruta)}
+              icon={<Eye size={16} />}
+              title="Ver detalle"
+            />
+          )}
+          {ruta.estado === 'Pendiente' && tienePermiso('asignar_rutas') && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleAsignarDomiciliario(ruta)}
+              icon={<UserPlus size={16} />}
+              title="Asignar domiciliario"
+            />
+          )}
+          {ruta.estado !== 'Cancelada' && ruta.estado !== 'Completada' && tienePermiso('gestionar_rutas') && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleCambiarEstado(ruta)}
+              icon={<CheckCircle size={16} />}
+              title="Cambiar estado"
+            />
+          )}
+          {ruta.estado !== 'Cancelada' && ruta.estado !== 'Completada' && tienePermiso('cancelar_rutas') && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleCancelar(ruta)}
+              icon={<XCircle size={16} />}
+              title="Cancelar ruta"
+            />
+          )}
+        </div>
+      ),
+    },
+  ];
 
   // ============================================================================
   // EFECTOS
@@ -293,40 +420,6 @@ const Rutas: React.FC = () => {
     } else {
       setEntregasSeleccionadas(entregasPendientes.map((e) => e.id_entrega));
     }
-  };
-
-  // ============================================================================
-  // PAGINACIÓN
-  // ============================================================================
-  const handlePaginaAnterior = () => {
-    if (paginaActual > 1) {
-      setPaginaActual(paginaActual - 1);
-    }
-  };
-
-  const handlePaginaSiguiente = () => {
-    if (paginaActual < totalPaginas) {
-      setPaginaActual(paginaActual + 1);
-    }
-  };
-
-  // ============================================================================
-  // HELPERS
-  // ============================================================================
-  const formatearFecha = (fecha: string | null | undefined): string => {
-    if (!fecha) return "N/A";
-    return new Date(fecha).toLocaleString("es-CO", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatearFechaCorta = (fecha: string | null | undefined): string => {
-    if (!fecha) return "N/A";
-    return new Date(fecha).toLocaleDateString("es-CO");
   };
 
   // ============================================================================
@@ -621,240 +714,25 @@ const Rutas: React.FC = () => {
       </div>
 
       {/* Tabla de Rutas */}
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Número de Ruta
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Domiciliario
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Fecha Programada
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Estado
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Entregas
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Distancia
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Tiempo Est.
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center">
-                      <div className="flex justify-center items-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <span className="ml-3 text-gray-600">Cargando...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : rutas.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                      No se encontraron rutas
-                    </td>
-                  </tr>
-                ) : (
-                  rutas.map((ruta) => (
-                    <tr
-                      key={ruta.id_ruta}
-                      className="hover:bg-blue-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">
-                          {ruta.numero_ruta}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
-                          {ruta.domiciliario
-                            ? `${ruta.domiciliario.nombres} ${ruta.domiciliario.apellidos}`
-                            : "Sin asignar"}
-                        </div>
-                        {ruta.domiciliario?.tipo_vehiculo && (
-                          <div className="text-xs text-gray-500">
-                            {ruta.domiciliario.tipo_vehiculo}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {formatearFechaCorta(ruta.fecha_programada)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getEstadoColor(
-                            ruta.estado
-                          )}`}
-                        >
-                          {ruta.estado}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {ruta._count?.entregas || 0}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {ruta.distancia_total_km
-                          ? `${parseFloat(ruta.distancia_total_km).toFixed(1)} km`
-                          : "N/A"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {ruta.tiempo_estimado_min
-                          ? `${ruta.tiempo_estimado_min} min`
-                          : "N/A"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          {/* Ver Detalle */}
-                          {tienePermiso("ver_rutas") && (
-                            <button
-                              onClick={() => cargarDetalleRuta(ruta.id_ruta)}
-                              className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
-                              title="Ver detalle"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                />
-                              </svg>
-                            </button>
-                          )}
-
-                          {/* Asignar Domiciliario */}
-                          {ruta.estado === "Pendiente" && tienePermiso("asignar_rutas") && (
-                            <button
-                              onClick={() => handleAsignarDomiciliario(ruta)}
-                              className="text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
-                              title="Asignar domiciliario"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
-                              </svg>
-                            </button>
-                          )}
-
-                          {/* Cambiar Estado */}
-                          {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && tienePermiso("gestionar_rutas") && (
-                              <button
-                                onClick={() => handleCambiarEstado(ruta)}
-                                className="text-green-600 hover:text-green-800 font-medium text-sm transition-colors"
-                                title="Cambiar estado"
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  />
-                                </svg>
-                              </button>
-                            )}
-
-                          {/* Cancelar Ruta */}
-                          {ruta.estado !== "Cancelada" &&
-                            ruta.estado !== "Completada" && tienePermiso("cancelar_rutas") && (
-                              <button
-                                onClick={() => handleCancelar(ruta)}
-                                className="text-red-600 hover:text-red-800 font-medium text-sm transition-colors"
-                                title="Cancelar ruta"
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </button>
-                            )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Paginación */}
-          {totalPaginas > 1 && (
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Página {paginaActual} de {totalPaginas}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handlePaginaAnterior}
-                    disabled={paginaActual === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Anterior
-                  </button>
-                  <button
-                    onClick={handlePaginaSiguiente}
-                    disabled={paginaActual === totalPaginas}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <Card>
+        <CardContent>
+          <Pagination
+            currentPage={paginaActual}
+            totalPages={totalPaginas}
+            onPageChange={setPaginaActual}
+          />
+          
+          <Table
+            columns={rutasColumns}
+            data={rutas}
+            keyExtractor={(row) => row.id_ruta}
+            loading={loading}
+            striped
+            hoverable
+            emptyMessage="No se encontraron rutas"
+          />
+        </CardContent>
+      </Card>
 
       {/* Modals */}
       <FormModal

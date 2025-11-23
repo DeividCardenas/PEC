@@ -2,28 +2,7 @@
  * Servicio para Gestión de Entregas (RF008)
  */
 
-import axios from "axios";
-
-// Crear instancia específica para entregas
-const entregasAxios = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/entregas`,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Interceptor para incluir token de autenticación
-entregasAxios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+import { axiosInstance, setBaseURL } from "../Shared/axiosInstance";
 
 // ============================================================================
 // INTERFACES
@@ -190,6 +169,8 @@ export interface EstadisticasResponse {
  * Obtener lista de entregas con paginación y filtros
  */
 export const fetchEntregas = async (params: EntregasParams = {}): Promise<EntregasResponse> => {
+  setBaseURL('entregas');
+  
   const queryParams = new URLSearchParams();
 
   if (params.page) queryParams.append("page", params.page.toString());
@@ -200,7 +181,7 @@ export const fetchEntregas = async (params: EntregasParams = {}): Promise<Entreg
   if (params.fecha_desde) queryParams.append("fecha_desde", params.fecha_desde);
   if (params.fecha_hasta) queryParams.append("fecha_hasta", params.fecha_hasta);
 
-  const response = await entregasAxios.get(`?${queryParams.toString()}`);
+  const response = await axiosInstance.get(`?${queryParams.toString()}`);
   return response.data;
 };
 
@@ -208,7 +189,8 @@ export const fetchEntregas = async (params: EntregasParams = {}): Promise<Entreg
  * Obtener una entrega por ID
  */
 export const fetchEntrega = async (id: number): Promise<EntregaResponse> => {
-  const response = await entregasAxios.get(`/${id}`);
+  setBaseURL('entregas');
+  const response = await axiosInstance.get(`/${id}`);
   return response.data;
 };
 
@@ -216,7 +198,8 @@ export const fetchEntrega = async (id: number): Promise<EntregaResponse> => {
  * Crear una nueva entrega
  */
 export const createEntrega = async (data: CrearEntregaData): Promise<EntregaResponse> => {
-  const response = await entregasAxios.post("", data);
+  setBaseURL('entregas');
+  const response = await axiosInstance.post("", data);
   return response.data;
 };
 
@@ -227,7 +210,8 @@ export const updateEntrega = async (
   id: number,
   data: ActualizarEntregaData
 ): Promise<EntregaResponse> => {
-  const response = await entregasAxios.put(`/${id}`, data);
+  setBaseURL('entregas');
+  const response = await axiosInstance.put(`/${id}`, data);
   return response.data;
 };
 
@@ -238,7 +222,8 @@ export const cambiarEstadoEntrega = async (
   id: number,
   data: CambiarEstadoData
 ): Promise<EntregaResponse> => {
-  const response = await entregasAxios.put(`/${id}/estado`, data);
+  setBaseURL('entregas');
+  const response = await axiosInstance.put(`/${id}/estado`, data);
   return response.data;
 };
 
@@ -249,7 +234,8 @@ export const cancelarEntrega = async (
   id: number,
   data: CancelarEntregaData
 ): Promise<EntregaResponse> => {
-  const response = await entregasAxios.put(`/${id}/cancelar`, data);
+  setBaseURL('entregas');
+  const response = await axiosInstance.put(`/${id}/cancelar`, data);
   return response.data;
 };
 
@@ -257,7 +243,8 @@ export const cancelarEntrega = async (
  * Obtener estadísticas de entregas
  */
 export const fetchEstadisticas = async (): Promise<EstadisticasResponse> => {
-  const response = await entregasAxios.get("/estadisticas");
+  setBaseURL('entregas');
+  const response = await axiosInstance.get("/estadisticas");
   return response.data;
 };
 
@@ -268,12 +255,14 @@ export const fetchEntregasPorPaciente = async (
   id_paciente: number,
   params: { page?: number; limit?: number } = {}
 ): Promise<EntregasResponse> => {
+  setBaseURL('entregas');
+  
   const queryParams = new URLSearchParams();
 
   if (params.page) queryParams.append("page", params.page.toString());
   if (params.limit) queryParams.append("limit", params.limit.toString());
 
-  const response = await entregasAxios.get(`/paciente/${id_paciente}?${queryParams.toString()}`);
+  const response = await axiosInstance.get(`/paciente/${id_paciente}?${queryParams.toString()}`);
   return response.data;
 };
 

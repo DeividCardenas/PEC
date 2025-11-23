@@ -18,6 +18,7 @@ import {
   type DomiciliarioConUbicacion,
   type RutaConSeguimiento,
 } from "../../services/Seguimiento/seguimientoService";
+import { analyzeTrackingStatus, predictDeliveryIssues } from "../../services/Seguimiento/seguimientoAIService";
 import { usePermissions } from "../../hooks/usePermissions";
 import { RutaDetailsModal } from "./SeguimientoModals";
 
@@ -36,6 +37,11 @@ const Seguimiento: React.FC = () => {
   const [rutaSeleccionada, setRutaSeleccionada] = useState<RutaConSeguimiento | null>(null);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+
+  // Estados para IA
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   // Modals
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -126,6 +132,54 @@ const Seguimiento: React.FC = () => {
     toast.info(autoRefresh ? "Auto-actualización desactivada" : "Auto-actualización activada");
   };
 
+  // Análisis con IA
+  const handleAnalyzeTracking = async () => {
+    setLoadingAI(true);
+    setShowAIPanel(true);
+    try {
+      // Mapear las rutas al formato TrackingData esperado por el servicio de IA
+      const trackingsData = rutasActivas.map(ruta => ({
+        numeroOrden: `Ruta ${ruta.numero_ruta}`,
+        estado: ruta.estado,
+        ubicacionActual: ruta.domiciliario?.latitud_actual && ruta.domiciliario?.longitud_actual
+          ? `${ruta.domiciliario.latitud_actual}, ${ruta.domiciliario.longitud_actual}`
+          : undefined,
+        horaEstimadaEntrega: ruta.fecha_finalizacion || undefined,
+        eventos: [
+          {
+            fecha: ruta.fecha_inicio || new Date().toISOString(),
+            descripcion: `Ruta iniciada - ${ruta.entregasCompletadas}/${ruta.totalEntregas} entregas completadas`,
+            ubicacion: ruta.domiciliario ? `${ruta.domiciliario.nombres} ${ruta.domiciliario.apellidos}` : 'N/A',
+          }
+        ],
+        destinatario: ruta.domiciliario ? `${ruta.domiciliario.nombres} ${ruta.domiciliario.apellidos}` : 'Sin asignar',
+        productos: ruta.siguienteEntrega ? [{
+          nombre: `Próxima entrega: ${ruta.siguienteEntrega.numero_pedido}`,
+          cantidad: 1
+        }] : [],
+      }));
+
+      // Usar predictDeliveryIssues que acepta un array de trackings
+      const analysisText = await predictDeliveryIssues(trackingsData);
+      
+      // Crear un objeto de análisis con el texto
+      setAiAnalysis({
+        predicciones: [{
+          tipo: 'analisis_general',
+          mensaje: analysisText,
+        }],
+      });
+      
+      toast.success("Análisis completado");
+    } catch (error) {
+      console.error("Error al analizar seguimiento:", error);
+      toast.error("Error al realizar el análisis con IA");
+      setAiAnalysis(null);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
   // ============================================================================
   // RENDER
   // ============================================================================
@@ -151,6 +205,16 @@ const Seguimiento: React.FC = () => {
               Seguimiento en Tiempo Real
             </h1>
             <div className="flex gap-3">
+              <button
+                onClick={handleAnalyzeTracking}
+                disabled={loadingAI || rutasActivas.length === 0}
+                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-2.5 px-5 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                {loadingAI ? "Analizando..." : "Análisis IA"}
+              </button>
               <button
                 onClick={() => cargarDatos()}
                 className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-5 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
@@ -240,6 +304,84 @@ const Seguimiento: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Panel de Análisis IA */}
+          {showAIPanel && aiAnalysis && (
+            <div className="mb-6 bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-2 border-purple-500/50 rounded-lg p-6 shadow-2xl backdrop-blur-sm">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/20 rounded-lg">
+                    <svg className="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Análisis Inteligente de Seguimiento</h3>
+                </div>
+                <button
+                  onClick={() => setShowAIPanel(false)}
+                  className="text-gray-400 hover:text-white text-2xl font-bold transition-colors hover:bg-red-500/20 rounded-lg w-8 h-8 flex items-center justify-center"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-blue-500/30 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <h4 className="font-semibold text-white mb-2 text-lg">Resumen de Estado</h4>
+                    <p className="text-gray-300 leading-relaxed">{aiAnalysis.resumen}</p>
+                  </div>
+                </div>
+              </div>
+
+              {aiAnalysis.predicciones && aiAnalysis.predicciones.length > 0 && (
+                <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-orange-500/30 shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-orange-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-white mb-3 text-lg">Análisis de Rutas y Entregas</h4>
+                      <div className="prose prose-invert max-w-none">
+                        {aiAnalysis.predicciones.map((pred: any, idx: number) => (
+                          <div key={idx} className="text-sm text-gray-300 whitespace-pre-line leading-relaxed mb-3">
+                            {pred.mensaje}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-yellow-500/30 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-yellow-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-3 text-lg">Recomendaciones</h4>
+                    <ul className="space-y-3">
+                      {aiAnalysis.recomendaciones?.map((rec: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-3 group">
+                          <span className="text-yellow-400 mt-1 text-lg">•</span>
+                          <span className="text-gray-300 leading-relaxed group-hover:text-white transition-colors">{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-dark-card/80 rounded-lg p-5 border border-purple-500/30 shadow-lg">
+                <h4 className="font-semibold text-white mb-3 text-lg">Análisis Detallado</h4>
+                <p className="text-gray-300 whitespace-pre-line leading-relaxed">{aiAnalysis.analisis_detallado}</p>
+              </div>
+            </div>
+          )}
 
           {/* Contenido Principal */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

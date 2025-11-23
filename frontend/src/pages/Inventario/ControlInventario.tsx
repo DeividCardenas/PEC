@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles, TrendingUp, AlertTriangle, Lightbulb, Settings, Plus } from "lucide-react";
 import {
   obtenerAlertasStockBajo,
   obtenerMovimientosInventario,
@@ -17,6 +17,14 @@ import {
   MovimientoInventario,
   EstadisticasInventario,
 } from "../../services/Inventario/inventarioService";
+import { analyzeInventoryStatus } from "../../services/Inventario/inventarioAIService";
+import Modal from "../../components/Modal";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Badge from "../../components/Badge";
+import Table, { Column } from "../../components/Table";
+import Card, { CardContent } from "../../components/Card";
+import Pagination from "../../components/Pagination";
 
 const ControlInventario: React.FC = () => {
   const navigate = useNavigate();
@@ -56,6 +64,11 @@ const ControlInventario: React.FC = () => {
     stock_minimo: 0,
     stock_maximo: 0,
   });
+
+  // Estados para IA
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   // ===== EFECTOS =====
   useEffect(() => {
@@ -220,14 +233,6 @@ const ControlInventario: React.FC = () => {
     });
   };
 
-  const obtenerColorNivelStock = (producto: ProductoInventario) => {
-    const porcentaje = producto.porcentaje_stock || 0;
-    if (porcentaje === 0 || producto.stock_actual === 0) return "text-red-600 bg-red-50";
-    if (porcentaje <= 50) return "text-orange-600 bg-orange-50";
-    if (porcentaje <= 100) return "text-yellow-600 bg-yellow-50";
-    return "text-green-600 bg-green-50";
-  };
-
   const obtenerIconoTipoMovimiento = (tipo: string) => {
     switch (tipo) {
       case "entrada":
@@ -243,18 +248,185 @@ const ControlInventario: React.FC = () => {
     }
   };
 
-  const obtenerColorTipoMovimiento = (tipo: string) => {
-    switch (tipo) {
-      case "entrada":
-        return "text-green-600 bg-green-50";
-      case "salida":
-        return "text-red-600 bg-red-50";
-      case "ajuste":
-        return "text-blue-600 bg-blue-50";
-      case "devolucion":
-        return "text-yellow-600 bg-yellow-50";
-      default:
-        return "text-gray-600 bg-gray-50";
+  // ===== DEFINICIÓN DE COLUMNAS =====
+  const alertasColumns: Column<ProductoInventario>[] = [
+    { key: 'cum', title: 'CUM', align: 'center' },
+    {
+      key: 'descripcion',
+      title: 'Producto',
+      align: 'left',
+      render: (val, row) => (
+        <div>
+          <div className="font-medium">{val}</div>
+          <div className="text-xs text-gray-500">{row.laboratorio?.nombre}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'stock_actual',
+      title: 'Stock Actual',
+      align: 'center',
+      render: (val, row) => (
+        <Badge variant={
+          val === 0 ? 'danger' :
+          (row.porcentaje_stock || 0) <= 50 ? 'warning' :
+          'success'
+        }>
+          {val} {row.unidad_medida}
+        </Badge>
+      ),
+    },
+    {
+      key: 'stock_minimo',
+      title: 'Stock Mínimo',
+      align: 'center',
+      render: (val, row) => `${val} ${row.unidad_medida}`,
+    },
+    {
+      key: 'deficit',
+      title: 'Déficit',
+      align: 'center',
+      render: (val, row) => (
+        <Badge variant="danger">
+          -{val || 0} {row.unidad_medida}
+        </Badge>
+      ),
+    },
+    {
+      key: 'porcentaje_stock',
+      title: 'Estado',
+      align: 'center',
+      render: (val) => (
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-24 bg-gray-200 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full ${
+                (val || 0) <= 50 ? 'bg-red-500' : 'bg-yellow-500'
+              }`}
+              style={{ width: `${Math.min(100, val || 0)}%` }}
+            />
+          </div>
+          <span className="text-xs">{val || 0}%</span>
+        </div>
+      ),
+    },
+    {
+      key: 'id_producto',
+      title: 'Acciones',
+      align: 'center',
+      render: (_, row) => (
+        <div className="flex justify-center gap-2">
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => abrirModalAjustarStock(row)}
+            icon={<Plus size={16} />}
+          >
+            Ajustar
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => abrirModalStockMinimo(row)}
+            icon={<Settings size={16} />}
+          >
+            Config
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const movimientosColumns: Column<MovimientoInventario>[] = [
+    {
+      key: 'fecha_movimiento',
+      title: 'Fecha',
+      align: 'center',
+      render: (val) => formatearFecha(val),
+    },
+    {
+      key: 'tipo_movimiento',
+      title: 'Tipo',
+      align: 'center',
+      render: (val) => (
+        <Badge variant={
+          val === 'entrada' ? 'success' :
+          val === 'salida' ? 'danger' :
+          val === 'ajuste' ? 'info' :
+          'warning'
+        }>
+          {obtenerIconoTipoMovimiento(val)} {val.toUpperCase()}
+        </Badge>
+      ),
+    },
+    {
+      key: 'producto',
+      title: 'Producto',
+      align: 'left',
+      render: (val: any) => (
+        <div>
+          <div className="font-medium">{val?.descripcion}</div>
+          <div className="text-xs text-gray-500">CUM: {val?.cum}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'cantidad',
+      title: 'Cantidad',
+      align: 'center',
+      render: (val, row: any) => `${val} ${row.producto?.unidad_medida}`,
+    },
+    {
+      key: 'stock_anterior',
+      title: 'Stock Anterior',
+      align: 'center',
+      render: (val, row: any) => `${val} ${row.producto?.unidad_medida}`,
+    },
+    {
+      key: 'stock_nuevo',
+      title: 'Stock Nuevo',
+      align: 'center',
+      render: (val, row: any) => `${val} ${row.producto?.unidad_medida}`,
+    },
+    {
+      key: 'motivo',
+      title: 'Motivo',
+      align: 'left',
+      render: (val) => val || 'N/A',
+    },
+    {
+      key: 'usuario',
+      title: 'Usuario',
+      align: 'center',
+      render: (val: any) => val?.nombre || 'Sistema',
+    },
+  ];
+
+  // ===== FUNCIONES DE IA =====
+  const handleAnalyzeInventory = async () => {
+    setLoadingAI(true);
+    setShowAIPanel(true);
+    try {
+      // Map ProductoInventario -> InventoryItem expected by analyzeInventoryStatus
+      const itemsForAI = alertasStock.map((p) => ({
+        descripcion: p.descripcion,
+        cum: p.cum,
+        stock_actual: p.stock_actual,
+        stock_minimo: p.stock_minimo,
+        unidad_medida: p.unidad_medida,
+        // try common field names for unit price, fall back to 0 if missing
+        precio_unidad: (p as any).precio_unidad ?? (p as any).precio_unitario ?? 0,
+        laboratorio: p.laboratorio?.nombre ?? "",
+      }));
+      const analysis = await analyzeInventoryStatus(itemsForAI);
+      setAiAnalysis(analysis);
+      toast.success("Análisis completado");
+    } catch (error) {
+      console.error("Error al analizar inventario:", error);
+      toast.error("Error al realizar el análisis con IA");
+      setAiAnalysis(null);
+    } finally {
+      setLoadingAI(false);
     }
   };
 
@@ -278,538 +450,421 @@ const ControlInventario: React.FC = () => {
 
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-
-      {/* Estadísticas */}
-      {estadisticas && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-            <div className="text-sm text-gray-600">Total Productos</div>
-            <div className="text-2xl font-bold text-gray-800">
-              {estadisticas.total_productos}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-            <div className="text-sm text-gray-600">Con Stock</div>
-            <div className="text-2xl font-bold text-green-600">
-              {estadisticas.productos_con_stock}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
-            <div className="text-sm text-gray-600">Sin Stock</div>
-            <div className="text-2xl font-bold text-red-600">
-              {estadisticas.productos_sin_stock}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
-            <div className="text-sm text-gray-600">Stock Bajo</div>
-            <div className="text-2xl font-bold text-orange-600">
-              {estadisticas.productos_stock_bajo}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
-            <div className="text-sm text-gray-600">Unidades Totales</div>
-            <div className="text-2xl font-bold text-purple-600">
-              {estadisticas.unidades_totales_stock.toLocaleString()}
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
-            <div className="text-sm text-gray-600">Movimientos Hoy</div>
-            <div className="text-2xl font-bold text-yellow-600">
-              {estadisticas.movimientos_hoy}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="flex">
-            <button
-              onClick={() => setTabActiva("alertas")}
-              className={`px-6 py-3 font-medium text-sm ${
-                tabActiva === "alertas"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+          {/* Botón de Análisis IA */}
+          <div className="mb-6 flex justify-end">
+            <Button
+              variant="primary"
+              onClick={handleAnalyzeInventory}
+              disabled={loadingAI || alertasStock.length === 0}
+              icon={<Sparkles size={20} />}
             >
-              Alertas de Stock Bajo ({alertasStock.length})
-            </button>
-            <button
-              onClick={() => setTabActiva("movimientos")}
-              className={`px-6 py-3 font-medium text-sm ${
-                tabActiva === "movimientos"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Movimientos de Inventario
-            </button>
-          </nav>
-        </div>
+              {loadingAI ? "Analizando..." : "Análisis Inteligente con IA"}
+            </Button>
+          </div>
 
-        {/* Contenido Tabs */}
-        <div className="p-6">
-          {/* Tab: Alertas de Stock Bajo */}
-          {tabActiva === "alertas" && (
-            <div>
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-                  <p className="mt-2 text-gray-600">Cargando alertas...</p>
-                </div>
-              ) : alertasStock.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-600">
-                    No hay productos con stock bajo
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            CUM
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Producto
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Stock Actual
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Stock Mínimo
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Déficit
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Estado
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Acciones
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {alertasStock.map((producto) => (
-                          <tr key={producto.id_producto} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              {producto.cum}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              <div className="font-medium">{producto.descripcion}</div>
-                              <div className="text-xs text-gray-500">
-                                {producto.laboratorio?.nombre}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              <span className={`px-2 py-1 rounded ${obtenerColorNivelStock(producto)}`}>
-                                {producto.stock_actual} {producto.unidad_medida}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              {producto.stock_minimo} {producto.unidad_medida}
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              <span className="px-2 py-1 bg-red-100 text-red-700 rounded">
-                                -{producto.deficit || 0} {producto.unidad_medida}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              <div className="flex items-center">
-                                <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                                  <div
-                                    className={`h-2 rounded-full ${
-                                      (producto.porcentaje_stock || 0) <= 50
-                                        ? "bg-red-500"
-                                        : "bg-yellow-500"
-                                    }`}
-                                    style={{
-                                      width: `${Math.min(100, producto.porcentaje_stock || 0)}%`,
-                                    }}
-                                  ></div>
-                                </div>
-                                <span className="text-xs text-gray-600">
-                                  {producto.porcentaje_stock || 0}%
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => abrirModalAjustarStock(producto)}
-                                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                                  title="Ajustar stock"
-                                >
-                                  Ajustar
-                                </button>
-                                <button
-                                  onClick={() => abrirModalStockMinimo(producto)}
-                                  className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
-                                  title="Configurar stock mínimo"
-                                >
-                                  Config
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Paginación Alertas */}
-                  {totalPaginasAlertas > 1 && (
-                    <div className="mt-4 flex justify-center items-center space-x-2">
-                      <button
-                        onClick={() => setPaginaAlertas(Math.max(1, paginaAlertas - 1))}
-                        disabled={paginaAlertas === 1}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-                      >
-                        Anterior
-                      </button>
-                      <span className="text-sm text-gray-600">
-                        Página {paginaAlertas} de {totalPaginasAlertas}
-                      </span>
-                      <button
-                        onClick={() =>
-                          setPaginaAlertas(Math.min(totalPaginasAlertas, paginaAlertas + 1))
-                        }
-                        disabled={paginaAlertas === totalPaginasAlertas}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-                      >
-                        Siguiente
-                      </button>
+          {/* Estadísticas */}
+          {estadisticas && (
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+              <Card hoverable>
+                <CardContent>
+                  <div className="border-l-4 border-blue-500 pl-3">
+                    <div className="text-sm text-gray-600">Total Productos</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {estadisticas.total_productos}
                     </div>
-                  )}
-                </>
-              )}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card hoverable>
+                <CardContent>
+                  <div className="border-l-4 border-green-500 pl-3">
+                    <div className="text-sm text-gray-600">Con Stock</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {estadisticas.productos_con_stock}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card hoverable>
+                <CardContent>
+                  <div className="border-l-4 border-red-500 pl-3">
+                    <div className="text-sm text-gray-600">Sin Stock</div>
+                    <div className="text-2xl font-bold text-red-600">
+                      {estadisticas.productos_sin_stock}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card hoverable>
+                <CardContent>
+                  <div className="border-l-4 border-orange-500 pl-3">
+                    <div className="text-sm text-gray-600">Stock Bajo</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {estadisticas.productos_stock_bajo}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card hoverable>
+                <CardContent>
+                  <div className="border-l-4 border-purple-500 pl-3">
+                    <div className="text-sm text-gray-600">Unidades Totales</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {estadisticas.unidades_totales_stock.toLocaleString()}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card hoverable>
+                <CardContent>
+                  <div className="border-l-4 border-yellow-500 pl-3">
+                    <div className="text-sm text-gray-600">Movimientos Hoy</div>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {estadisticas.movimientos_hoy}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* Tab: Movimientos de Inventario */}
-          {tabActiva === "movimientos" && (
-            <div>
-              {/* Filtros */}
-              <div className="mb-4 flex items-center space-x-4">
+          {/* Panel de Análisis IA */}
+          {showAIPanel && aiAnalysis && (
+            <div className="mb-6 bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-2 border-purple-500/50 rounded-lg p-6 shadow-2xl backdrop-blur-sm">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/20 rounded-lg">
+                    <Sparkles className="text-purple-400" size={28} />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Análisis Inteligente de Inventario</h3>
+                </div>
+                <button
+                  onClick={() => setShowAIPanel(false)}
+                  className="text-gray-400 hover:text-white text-2xl font-bold transition-colors hover:bg-red-500/20 rounded-lg w-8 h-8 flex items-center justify-center"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Resumen */}
+              <div className="mb-4 bg-white/10 rounded-lg p-5 border border-blue-500/30 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="text-blue-400 mt-1 flex-shrink-0" size={22} />
+                  <div>
+                    <h4 className="font-semibold text-white mb-2 text-lg">Resumen Ejecutivo</h4>
+                    <p className="text-gray-200 leading-relaxed">{aiAnalysis.resumen}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Alertas Críticas */}
+              {aiAnalysis.alertas_criticas && aiAnalysis.alertas_criticas.length > 0 && (
+                <div className="mb-4 bg-white/10 rounded-lg p-5 border border-red-500/30 shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="text-red-400 mt-1 flex-shrink-0" size={22} />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-white mb-3 text-lg">Alertas Críticas</h4>
+                      <ul className="space-y-2">
+                        {aiAnalysis.alertas_criticas.map((alerta: string, idx: number) => (
+                          <li key={idx} className="text-sm text-gray-200 flex items-start gap-2">
+                            <span className="text-red-400 text-lg">•</span>
+                            <span>{alerta}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Productos Prioritarios */}
+              {aiAnalysis.productos_prioritarios && aiAnalysis.productos_prioritarios.length > 0 && (
+                <div className="mb-4 bg-white/10 rounded-lg p-5 border border-yellow-500/30 shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <TrendingUp className="text-yellow-400 mt-1 flex-shrink-0" size={22} />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-white mb-3 text-lg">Productos Prioritarios</h4>
+                      <div className="space-y-2">
+                        {aiAnalysis.productos_prioritarios.map((producto: any, idx: number) => (
+                          <div key={idx} className="bg-white/5 rounded p-3 border border-yellow-500/20">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium text-white">{producto.nombre}</p>
+                                <p className="text-sm text-gray-300">Prioridad: {producto.prioridad}</p>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-300 mt-2">{producto.razon}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Recomendaciones */}
+              <div className="mb-4 bg-white/10 rounded-lg p-5 border border-green-500/30 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <Lightbulb className="text-green-400 mt-1 flex-shrink-0" size={22} />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-3 text-lg">Recomendaciones</h4>
+                    <ul className="space-y-3">
+                      {aiAnalysis.recomendaciones.map((rec: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-3 group">
+                          <span className="text-green-400 mt-1 text-lg">•</span>
+                          <span className="text-gray-200 leading-relaxed group-hover:text-white transition-colors">{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Análisis Detallado */}
+              <div className="bg-white/10 rounded-lg p-5 border border-purple-500/30 shadow-lg">
+                <h4 className="font-semibold text-white mb-3 text-lg">Análisis Detallado</h4>
+                <p className="text-gray-200 whitespace-pre-line leading-relaxed">{aiAnalysis.analisis_detallado}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Tabs */}
+          <Card>
+            <div className="border-b border-dark-border">
+              <nav className="flex">
+                <button
+                  onClick={() => setTabActiva("alertas")}
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${
+                    tabActiva === "alertas"
+                      ? "border-b-2 border-primary-500 text-primary-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Alertas de Stock Bajo ({alertasStock.length})
+                </button>
+                <button
+                  onClick={() => setTabActiva("movimientos")}
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${
+                    tabActiva === "movimientos"
+                      ? "border-b-2 border-primary-500 text-primary-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Movimientos de Inventario
+                </button>
+              </nav>
+            </div>
+
+            <CardContent>
+              {/* Tab: Alertas de Stock Bajo */}
+              {tabActiva === "alertas" && (
                 <div>
-                  <label className="text-sm text-gray-600 mr-2">Tipo:</label>
-                  <select
-                    value={filtroTipoMovimiento}
-                    onChange={(e) => {
-                      setFiltroTipoMovimiento(e.target.value);
-                      setPaginaMovimientos(1);
-                    }}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm"
-                  >
-                    <option value="">Todos</option>
-                    <option value="entrada">Entrada</option>
-                    <option value="salida">Salida</option>
-                    <option value="ajuste">Ajuste</option>
-                    <option value="devolucion">Devolución</option>
-                  </select>
+                  <Pagination
+                    currentPage={paginaAlertas}
+                    totalPages={totalPaginasAlertas}
+                    onPageChange={setPaginaAlertas}
+                  />
+                  
+                  <Table
+                    columns={alertasColumns}
+                    data={alertasStock}
+                    keyExtractor={(row) => row.id_producto}
+                    loading={loading}
+                    striped
+                    hoverable
+                    emptyMessage="No hay productos con stock bajo"
+                  />
                 </div>
-              </div>
+              )}
 
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-                  <p className="mt-2 text-gray-600">Cargando movimientos...</p>
-                </div>
-              ) : movimientos.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-600">No hay movimientos registrados</p>
-                </div>
-              ) : (
-                <>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Fecha
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Tipo
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Producto
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Cantidad
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Stock Anterior
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Stock Nuevo
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Usuario
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Motivo
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {movimientos.map((movimiento) => (
-                          <tr key={movimiento.id_movimiento} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              {formatearFecha(movimiento.creado_en)}
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              <span
-                                className={`px-2 py-1 rounded text-xs font-medium ${obtenerColorTipoMovimiento(
-                                  movimiento.tipo_movimiento
-                                )}`}
-                              >
-                                {obtenerIconoTipoMovimiento(movimiento.tipo_movimiento)}{" "}
-                                {movimiento.tipo_movimiento}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              <div className="font-medium">
-                                {movimiento.producto?.descripcion}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {movimiento.producto?.cum}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm">
-                              <span
-                                className={`font-medium ${
-                                  movimiento.cantidad >= 0 ? "text-green-600" : "text-red-600"
-                                }`}
-                              >
-                                {movimiento.cantidad > 0 ? "+" : ""}
-                                {movimiento.cantidad}{" "}
-                                {movimiento.producto?.unidad_medida}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              {movimiento.stock_anterior}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">
-                              {movimiento.stock_nuevo}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-600">
-                              {movimiento.usuario?.username || "Sistema"}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-600">
-                              <div className="max-w-xs truncate" title={movimiento.motivo || ""}>
-                                {movimiento.motivo || "-"}
-                              </div>
-                              {movimiento.numero_referencia && (
-                                <div className="text-xs text-gray-400">
-                                  Ref: {movimiento.numero_referencia}
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              {/* Tab: Movimientos de Inventario */}
+              {tabActiva === "movimientos" && (
+                <div>
+                  {/* Filtros */}
+                  <div className="mb-4">
+                    <select
+                      value={filtroTipoMovimiento}
+                      onChange={(e) => {
+                        setFiltroTipoMovimiento(e.target.value);
+                        setPaginaMovimientos(1);
+                      }}
+                      className="px-4 py-2.5 border border-dark-border rounded-xl bg-dark-card text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                    >
+                      <option value="">Todos los tipos</option>
+                      <option value="entrada">Entrada</option>
+                      <option value="salida">Salida</option>
+                      <option value="ajuste">Ajuste</option>
+                      <option value="devolucion">Devolución</option>
+                    </select>
                   </div>
 
-                  {/* Paginación Movimientos */}
-                  {totalPaginasMovimientos > 1 && (
-                    <div className="mt-4 flex justify-center items-center space-x-2">
-                      <button
-                        onClick={() =>
-                          setPaginaMovimientos(Math.max(1, paginaMovimientos - 1))
-                        }
-                        disabled={paginaMovimientos === 1}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-                      >
-                        Anterior
-                      </button>
-                      <span className="text-sm text-gray-600">
-                        Página {paginaMovimientos} de {totalPaginasMovimientos}
-                      </span>
-                      <button
-                        onClick={() =>
-                          setPaginaMovimientos(
-                            Math.min(totalPaginasMovimientos, paginaMovimientos + 1)
-                          )
-                        }
-                        disabled={paginaMovimientos === totalPaginasMovimientos}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-                      >
-                        Siguiente
-                      </button>
-                    </div>
-                  )}
-                </>
+                  <Pagination
+                    currentPage={paginaMovimientos}
+                    totalPages={totalPaginasMovimientos}
+                    onPageChange={setPaginaMovimientos}
+                  />
+                  
+                  <Table
+                    columns={movimientosColumns}
+                    data={movimientos}
+                    keyExtractor={(row) => row.id_movimiento}
+                    loading={loading}
+                    striped
+                    hoverable
+                    emptyMessage="No hay movimientos registrados"
+                  />
+                </div>
               )}
-            </div>
-          )}
-        </div>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Modal: Ajustar Stock */}
-      {modalAjustarStock && productoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Ajustar Stock
-            </h3>
-            <div className="mb-4 p-3 bg-gray-50 rounded">
-              <div className="text-sm text-gray-600">Producto:</div>
-              <div className="font-medium text-gray-900">
-                {productoSeleccionado.descripcion}
-              </div>
-              <div className="text-sm text-gray-500">
-                Stock actual: {productoSeleccionado.stock_actual}{" "}
-                {productoSeleccionado.unidad_medida}
-              </div>
-            </div>
-            <form onSubmit={handleAjustarStock}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tipo de ajuste
-                </label>
-                <select
-                  value={formAjuste.tipo_ajuste}
-                  onChange={(e) =>
-                    setFormAjuste({
-                      ...formAjuste,
-                      tipo_ajuste: e.target.value as any,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="ajuste">Ajuste (Agregar)</option>
-                  <option value="salida">Salida (Restar)</option>
-                  <option value="devolucion">Devolución (Agregar)</option>
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cantidad {formAjuste.tipo_ajuste === "salida" ? "(se restará)" : "(se sumará)"}
-                </label>
-                <input
-                  type="number"
-                  value={formAjuste.cantidad}
-                  onChange={(e) =>
-                    setFormAjuste({ ...formAjuste, cantidad: parseInt(e.target.value) || 0 })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  min="1"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Motivo
-                </label>
-                <textarea
-                  value={formAjuste.motivo}
-                  onChange={(e) =>
-                    setFormAjuste({ ...formAjuste, motivo: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  required
-                  placeholder="Ingrese el motivo del ajuste"
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={cerrarModales}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                  disabled={loading}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  {loading ? "Procesando..." : "Ajustar Stock"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          {/* Modal: Ajustar Stock */}
+          <Modal
+            isOpen={modalAjustarStock}
+            onClose={cerrarModales}
+            title="Ajustar Stock"
+            size="md"
+          >
+            {productoSeleccionado && (
+              <>
+                <div className="mb-4 p-3 bg-gray-50 rounded">
+                  <div className="text-sm text-gray-600">Producto:</div>
+                  <div className="font-medium text-gray-900">
+                    {productoSeleccionado.descripcion}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Stock actual: {productoSeleccionado.stock_actual}{" "}
+                    {productoSeleccionado.unidad_medida}
+                  </div>
+                </div>
+                <form onSubmit={handleAjustarStock}>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tipo de ajuste
+                    </label>
+                    <select
+                      value={formAjuste.tipo_ajuste}
+                      onChange={(e) =>
+                        setFormAjuste({
+                          ...formAjuste,
+                          tipo_ajuste: e.target.value as any,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="ajuste">Ajuste</option>
+                      <option value="salida">Salida</option>
+                      <option value="devolucion">Devolución</option>
+                    </select>
+                  </div>
+                  <Input
+                    label="Cantidad"
+                    type="number"
+                    value={formAjuste.cantidad.toString()}
+                    onChange={(e) =>
+                      setFormAjuste({ ...formAjuste, cantidad: parseInt(e.target.value) || 0 })
+                    }
+                    required
+                    min="1"
+                  />
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Motivo
+                    </label>
+                    <textarea
+                      value={formAjuste.motivo}
+                      onChange={(e) =>
+                        setFormAjuste({ ...formAjuste, motivo: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
+                      required
+                      placeholder="Ingrese el motivo del ajuste"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={cerrarModales}
+                      disabled={loading}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="success"
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? "Ajustando..." : "Ajustar Stock"}
+                    </Button>
+                  </div>
+                </form>
+              </>
+            )}
+          </Modal>
 
-      {/* Modal: Configurar Stock Mínimo */}
-      {modalStockMinimo && productoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Configurar Stock Mínimo
-            </h3>
-            <div className="mb-4 p-3 bg-gray-50 rounded">
-              <div className="text-sm text-gray-600">Producto:</div>
-              <div className="font-medium text-gray-900">
-                {productoSeleccionado.descripcion}
-              </div>
-            </div>
-            <form onSubmit={handleActualizarStockMinimo}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stock Mínimo
-                </label>
-                <input
-                  type="number"
-                  value={formStockMinimo.stock_minimo}
-                  onChange={(e) =>
-                    setFormStockMinimo({
-                      ...formStockMinimo,
-                      stock_minimo: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  min="0"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stock Máximo (opcional)
-                </label>
-                <input
-                  type="number"
-                  value={formStockMinimo.stock_maximo}
-                  onChange={(e) =>
-                    setFormStockMinimo({
-                      ...formStockMinimo,
-                      stock_maximo: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={cerrarModales}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                  disabled={loading}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  {loading ? "Procesando..." : "Guardar Configuración"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          {/* Modal: Configurar Stock Mínimo */}
+          <Modal
+            isOpen={modalStockMinimo}
+            onClose={cerrarModales}
+            title="Configurar Stock Mínimo"
+            size="md"
+          >
+            {productoSeleccionado && (
+              <>
+                <div className="mb-4 p-3 bg-gray-50 rounded">
+                  <div className="text-sm text-gray-600">Producto:</div>
+                  <div className="font-medium text-gray-900">
+                    {productoSeleccionado.descripcion}
+                  </div>
+                </div>
+                <form onSubmit={handleActualizarStockMinimo}>
+                  <Input
+                    label="Stock Mínimo"
+                    type="number"
+                    value={formStockMinimo.stock_minimo.toString()}
+                    onChange={(e) =>
+                      setFormStockMinimo({
+                        ...formStockMinimo,
+                        stock_minimo: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    required
+                    min="0"
+                  />
+                  <Input
+                    label="Stock Máximo (opcional)"
+                    type="number"
+                    value={formStockMinimo.stock_maximo.toString()}
+                    onChange={(e) =>
+                      setFormStockMinimo({
+                        ...formStockMinimo,
+                        stock_maximo: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    min="0"
+                  />
+                  <div className="flex justify-end gap-3 mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={cerrarModales}
+                      disabled={loading}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="success"
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? "Actualizando..." : "Actualizar"}
+                    </Button>
+                  </div>
+                </form>
+              </>
+            )}
+          </Modal>
         </div>
       </div>
     </div>

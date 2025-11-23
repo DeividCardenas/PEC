@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, FileText, TrendingUp, Users, Package } from "lucide-react";
+import { ArrowLeft, Download, FileText, TrendingUp, Users, Package, Sparkles, Lightbulb, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -29,6 +29,7 @@ import {
 import { fetchProveedores } from "../../services/Proveedores/proveedoresService";
 import { fetchLaboratories } from "../../services/Laboratorio/laboratoriosService";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { analyzeReport, generateExecutiveSummary } from "../../services/Reportes/reportesAIService";
 import Pagination from "../../components/Pagination";
 
 const ReportesCompras = () => {
@@ -44,6 +45,11 @@ const ReportesCompras = () => {
   const [tabActiva, setTabActiva] = useState<"reporte" | "resumen" | "tendencias">("reporte");
   const [loading, setLoading] = useState(false);
   const [exportando, setExportando] = useState(false);
+
+  // Estados para IA
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   // Filtros
   const [filtros, setFiltros] = useState<FiltrosReporte>({
@@ -203,6 +209,28 @@ const ReportesCompras = () => {
     }
   }, [filtros, tabActiva]);
 
+  // Análisis con IA
+  const handleAnalyzeReport = async () => {
+    if (!reporte) {
+      toast.error("Genera un reporte primero");
+      return;
+    }
+    setLoadingAI(true);
+    setShowAIPanel(true);
+    try {
+      // analyzeReport acepta un solo argumento; pasamos el reporte (con cast a any para evitar conflictos de tipo)
+      const analysis = await analyzeReport(reporte as any);
+      setAiAnalysis(analysis);
+      toast.success("Análisis completado");
+    } catch (error) {
+      console.error("Error al analizar reporte:", error);
+      toast.error("Error al realizar el análisis con IA");
+      setAiAnalysis(null);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
   // Cambiar página
   const handleCambiarPagina = (nuevaPagina: number) => {
     setFiltros({ ...filtros, page: nuevaPagina });
@@ -348,15 +376,94 @@ const ReportesCompras = () => {
               Limpiar
             </button>
             <button
+              onClick={handleAnalyzeReport}
+              disabled={loadingAI || !reporte}
+              className="ml-auto px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50 shadow-md transition-colors hover:from-purple-700 hover:to-purple-800"
+            >
+              <Sparkles size={18} />
+              {loadingAI ? "Analizando..." : "Análisis IA"}
+            </button>
+            <button
               onClick={handleExportarCSV}
               disabled={exportando}
-              className="ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50 shadow-md transition-colors"
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50 shadow-md transition-colors"
             >
               <FontAwesomeIcon icon={faFileExcel} />
               {exportando ? "Exportando..." : "Exportar CSV"}
             </button>
           </div>
         </div>
+
+        {/* Panel de Análisis IA */}
+        {showAIPanel && aiAnalysis && (
+          <div className="mb-6 bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-2 border-purple-500/50 rounded-lg p-6 shadow-2xl backdrop-blur-sm">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Sparkles className="text-purple-400" size={28} />
+                </div>
+                <h3 className="text-xl font-bold text-white">Análisis Inteligente de Reportes</h3>
+              </div>
+              <button
+                onClick={() => setShowAIPanel(false)}
+                className="text-gray-400 hover:text-white text-2xl font-bold transition-colors hover:bg-red-500/20 rounded-lg w-8 h-8 flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-blue-500/30 shadow-lg">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-blue-400 mt-1 flex-shrink-0" size={22} />
+                <div>
+                  <h4 className="font-semibold text-white mb-2 text-lg">Resumen Ejecutivo</h4>
+                  <p className="text-gray-300 leading-relaxed">{aiAnalysis.resumen}</p>
+                </div>
+              </div>
+            </div>
+
+            {aiAnalysis.insights && aiAnalysis.insights.length > 0 && (
+              <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-green-500/30 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="text-green-400 mt-1 flex-shrink-0" size={22} />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-3 text-lg">Insights Clave</h4>
+                    <ul className="space-y-2">
+                      {aiAnalysis.insights.map((insight: string, idx: number) => (
+                        <li key={idx} className="text-sm text-gray-300 flex items-start gap-2">
+                          <span className="text-green-400">•</span>
+                          {insight}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-yellow-500/30 shadow-lg">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="text-yellow-400 mt-1 flex-shrink-0" size={22} />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white mb-3 text-lg">Recomendaciones</h4>
+                  <ul className="space-y-3">
+                    {aiAnalysis.recomendaciones?.map((rec: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3 group">
+                        <span className="text-yellow-400 mt-1 text-lg">•</span>
+                        <span className="text-gray-300 leading-relaxed group-hover:text-white transition-colors">{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-dark-card/80 rounded-lg p-5 border border-purple-500/30 shadow-lg">
+              <h4 className="font-semibold text-white mb-3 text-lg">Análisis Detallado</h4>
+              <p className="text-gray-300 whitespace-pre-line leading-relaxed">{aiAnalysis.analisis_detallado}</p>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="bg-dark-card border border-dark-border rounded-lg shadow-lg">
