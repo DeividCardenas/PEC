@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { User, MapPin, Package, MessageSquare, Save, Trash2, X } from "lucide-react";
 import {
   type Entrega,
   type CrearEntregaData,
@@ -16,6 +17,10 @@ import {
 } from "../../services/Entregas/entregasService";
 import { type Paciente } from "../../services/Pacientes/pacientesService";
 import { fetchProductos, type Producto } from "../../services/Productos/productosService";
+import Modal from "../../components/Modal";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Badge from "../../components/Badge";
 
 // ============================================================================
 // CREATE ENTREGA MODAL
@@ -76,46 +81,43 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-2xl">
-          <h2 className="text-2xl font-bold">Nueva Entrega</h2>
-          <p className="text-indigo-100 mt-1">Crear pedido de entrega a paciente</p>
-        </div>
-
-        <form onSubmit={onSubmit} className="p-6">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Nueva Entrega"
+      size="xl"
+    >
+      <form onSubmit={onSubmit}>
           {/* Sección: Selección de Paciente */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <i className="fas fa-user-injured text-blue-600"></i>
+          <div className="bg-dark-card rounded-xl p-6 mb-6 border border-dark-border">
+            <h3 className="text-lg font-semibold text-dark-text mb-4 flex items-center gap-2">
+              <User className="text-primary-400" size={20} />
               Selección de Paciente
             </h3>
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Paciente <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.id_paciente}
-                  onChange={onPacienteChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value={0}>Seleccione un paciente</option>
-                  {pacientes.map((paciente) => (
-                    <option key={paciente.id_paciente} value={paciente.id_paciente}>
-                      {paciente.nombres} {paciente.apellidos} - {paciente.numero_identificacion}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-text mb-2">
+                Paciente <span className="text-danger-400">*</span>
+              </label>
+              <select
+                value={formData.id_paciente}
+                onChange={onPacienteChange}
+                required
+                className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value={0}>Seleccione un paciente</option>
+                {pacientes.map((paciente) => (
+                  <option key={paciente.id_paciente} value={paciente.id_paciente}>
+                    {paciente.nombres} {paciente.apellidos} - {paciente.numero_identificacion}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           {/* Sección: Dirección de Entrega */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <i className="fas fa-map-marker-alt text-green-600"></i>
+          <div className="bg-dark-card rounded-xl p-6 mb-6 border border-dark-border">
+            <h3 className="text-lg font-semibold text-dark-text mb-4 flex items-center gap-2">
+              <MapPin className="text-success-400" size={20} />
               Dirección de Entrega
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,7 +130,7 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                   value={formData.direccion_entrega}
                   onChange={(e) => setFormData({ ...formData, direccion_entrega: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div>
@@ -140,7 +142,7 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                   value={formData.ciudad_entrega}
                   onChange={(e) => setFormData({ ...formData, ciudad_entrega: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div>
@@ -152,7 +154,7 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                   value={formData.departamento_entrega}
                   onChange={(e) => setFormData({ ...formData, departamento_entrega: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div>
@@ -161,7 +163,7 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                   type="text"
                   value={formData.barrio_entrega}
                   onChange={(e) => setFormData({ ...formData, barrio_entrega: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div>
@@ -172,7 +174,7 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                   type="date"
                   value={formData.fecha_entrega_programada}
                   onChange={(e) => setFormData({ ...formData, fecha_entrega_programada: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               <div className="md:col-span-2">
@@ -183,38 +185,38 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                   value={formData.observaciones_direccion}
                   onChange={(e) => setFormData({ ...formData, observaciones_direccion: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
             </div>
           </div>
 
           {/* Sección: Productos */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-6">
+          <div className="bg-dark-card rounded-xl p-6 mb-6 border border-dark-border">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <i className="fas fa-pills text-purple-600"></i>
+              <h3 className="text-lg font-semibold text-dark-text flex items-center gap-2">
+                <Package className="text-accent-400" size={20} />
                 Productos de la Entrega
               </h3>
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="sm"
                 onClick={onAgregarProducto}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
               >
-                <i className="fas fa-plus mr-2"></i>
                 Agregar Producto
-              </button>
+              </Button>
             </div>
 
             {productosEntrega.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <i className="fas fa-box-open text-4xl mb-2"></i>
+              <div className="text-center py-8 text-dark-text-secondary">
+                <Package className="mx-auto mb-2" size={48} />
                 <p>No hay productos agregados. Haga clic en "Agregar Producto" para comenzar.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {productosEntrega.map((item, index) => (
-                  <div key={index} className="bg-white rounded-lg p-4 border border-purple-200">
+                  <div key={index} className="bg-dark-bg rounded-lg p-4 border border-dark-border">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                       <div className="md:col-span-5">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -224,7 +226,7 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                           value={item.id_producto}
                           onChange={(e) => onProductoChange(index, "id_producto", parseInt(e.target.value))}
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          className="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
                           <option value={0}>Seleccione un producto</option>
                           {productos.map((producto) => (
@@ -250,12 +252,12 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                           min="1"
                           max={getProductoDisponible(item.id_producto)}
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          className="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Precio Unit. <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-dark-text mb-2">
+                          Precio Unit. <span className="text-danger-400">*</span>
                         </label>
                         <input
                           type="number"
@@ -264,7 +266,7 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                           min="0"
                           step="0.01"
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          className="w-full px-3 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -277,14 +279,14 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
                         />
                       </div>
                       <div className="md:col-span-1 flex items-end">
-                        <button
+                        <Button
                           type="button"
+                          variant="danger"
+                          size="sm"
                           onClick={() => onEliminarProducto(index)}
-                          className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                          icon={<Trash2 size={16} />}
                           title="Eliminar producto"
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
+                        />
                       </div>
                     </div>
                   </div>
@@ -294,50 +296,49 @@ export const CreateEntregaModal: React.FC<CreateEntregaModalProps> = ({
 
             {/* Total */}
             {productosEntrega.length > 0 && (
-              <div className="mt-6 bg-white rounded-lg p-4 border-2 border-purple-300">
+              <div className="mt-6 bg-dark-bg rounded-lg p-4 border-2 border-accent-500">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-800">Total de la Entrega:</span>
-                  <span className="text-2xl font-bold text-purple-600">{formatearMoneda(calcularTotal())}</span>
+                  <span className="text-lg font-semibold text-dark-text">Total de la Entrega:</span>
+                  <span className="text-2xl font-bold text-accent-400">{formatearMoneda(calcularTotal())}</span>
                 </div>
               </div>
             )}
           </div>
 
           {/* Sección: Observaciones */}
-          <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <i className="fas fa-comment text-gray-600"></i>
+          <div className="bg-dark-card rounded-xl p-6 mb-6 border border-dark-border">
+            <h3 className="text-lg font-semibold text-dark-text mb-4 flex items-center gap-2">
+              <MessageSquare className="text-info-400" size={20} />
               Observaciones Generales
             </h3>
             <textarea
               value={formData.observaciones}
               onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-text-secondary focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Observaciones o instrucciones especiales para la entrega..."
             />
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end gap-4">
-            <button
+          <div className="flex justify-end gap-4 mt-6">
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg"
+              variant="primary"
+              icon={<Save size={18} />}
             >
-              <i className="fas fa-save mr-2"></i>
               Crear Entrega
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 
@@ -352,23 +353,13 @@ interface DetailsModalProps {
 
 export const DetailsModal: React.FC<DetailsModalProps> = ({ entrega, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
-            aria-label="Cerrar"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <h2 className="text-2xl font-bold">Detalles de Entrega</h2>
-          <p className="text-blue-100 mt-1">Pedido: {entrega.numero_pedido}</p>
-        </div>
-
-        <div className="p-6 space-y-6">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={`Detalles de Entrega - ${entrega.numero_pedido}`}
+      size="xl"
+    >
+        <div className="space-y-6">
           {/* Estado y Fechas */}
           <div className="bg-white border border-gray-200 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Estado y Fechas</h3>
@@ -518,19 +509,16 @@ export const DetailsModal: React.FC<DetailsModalProps> = ({ entrega, onClose }) 
               )}
             </div>
           </div>
+          <div className="flex justify-end mt-6">
+            <Button
+              variant="outline"
+              onClick={onClose}
+            >
+              Cerrar
+            </Button>
+          </div>
         </div>
-
-        {/* Botón Cerrar */}
-        <div className="bg-gray-50 px-6 py-4 rounded-b-2xl">
-          <button
-            onClick={onClose}
-            className="w-full px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-semibold"
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 };
 
@@ -560,14 +548,13 @@ export const EstadoModal: React.FC<EstadoModalProps> = ({
   const estadosDisponibles = ESTADOS_ENTREGA.filter((e) => e !== "Cancelado");
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-2xl">
-          <h2 className="text-2xl font-bold">Cambiar Estado de Entrega</h2>
-          <p className="text-purple-100 mt-1">Pedido: {entrega.numero_pedido}</p>
-        </div>
-
-        <form onSubmit={onSubmit} className="p-6">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={`Cambiar Estado - ${entrega.numero_pedido}`}
+      size="md"
+    >
+        <form onSubmit={onSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Estado Actual
@@ -585,7 +572,7 @@ export const EstadoModal: React.FC<EstadoModalProps> = ({
               value={nuevoEstado}
               onChange={(e) => setNuevoEstado(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">Seleccione un estado</option>
               {estadosDisponibles.map((estado) => (
@@ -604,29 +591,28 @@ export const EstadoModal: React.FC<EstadoModalProps> = ({
               value={observacionesDespacho}
               onChange={(e) => setObservacionesDespacho(e.target.value)}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-text-secondary focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Notas sobre el cambio de estado..."
             />
           </div>
 
-          <div className="flex justify-end gap-4">
-            <button
+          <div className="flex justify-end gap-4 mt-6">
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold"
+              variant="primary"
             >
               Cambiar Estado
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 
@@ -650,14 +636,13 @@ export const CancelarModal: React.FC<CancelarModalProps> = ({
   onSubmit,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
-        <div className="bg-gradient-to-r from-red-600 to-pink-600 text-white p-6 rounded-t-2xl">
-          <h2 className="text-2xl font-bold">Cancelar Entrega</h2>
-          <p className="text-red-100 mt-1">Pedido: {entrega.numero_pedido}</p>
-        </div>
-
-        <form onSubmit={onSubmit} className="p-6">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title={`Cancelar Entrega - ${entrega.numero_pedido}`}
+      size="md"
+    >
+        <form onSubmit={onSubmit}>
           <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -680,28 +665,27 @@ export const CancelarModal: React.FC<CancelarModalProps> = ({
               onChange={(e) => setMotivoCancelacion(e.target.value)}
               rows={4}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+              className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-dark-text placeholder-dark-text-secondary focus:ring-2 focus:ring-danger-500 focus:border-danger-500"
               placeholder="Explique el motivo de la cancelación..."
             />
           </div>
 
-          <div className="flex justify-end gap-4">
-            <button
+          <div className="flex justify-end gap-4 mt-6">
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
             >
               Volver
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-lg font-semibold"
+              variant="danger"
             >
               Confirmar Cancelación
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };

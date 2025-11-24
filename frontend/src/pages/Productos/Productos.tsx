@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles, Package, Lightbulb, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { fetchProductos } from "../../services/Productos/productosService";
+import { analyzeProduct, suggestComplementaryProducts } from "../../services/Productos/productosAIService";
 import { Producto, ProductParams } from "../../types";
 import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
@@ -26,6 +27,12 @@ const Productos = () => {
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   // Estado temporal para manejar cambios en el modal sin afectar inmediatamente la consulta
   const [tempSelectedExtraFields, setTempSelectedExtraFields] = useState<string[]>(selectedExtraFields);
+
+  // Estados para IA
+  const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -94,6 +101,24 @@ const Productos = () => {
   useEffect(() => {
     fetchProductosData();
   }, [fetchProductosData]);
+
+  // Análisis con IA
+  const handleAnalyzeProduct = async (producto: Producto) => {
+    setSelectedProduct(producto);
+    setLoadingAI(true);
+    setShowAIModal(true);
+    try {
+      const analysis = await analyzeProduct(producto);
+      setAiAnalysis(analysis);
+      toast.success("Análisis completado");
+    } catch (error) {
+      console.error("Error al analizar producto:", error);
+      toast.error("Error al realizar el análisis con IA");
+      setAiAnalysis(null);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-dark-bg flex flex-col">
@@ -192,6 +217,7 @@ const Productos = () => {
                 {selectedExtraFields.includes("registro_sanitario") && <th className="p-2">Registro Sanitario</th>}
                 {selectedExtraFields.includes("regulacion") && <th className="p-2">Regulación</th>}
                 {selectedExtraFields.includes("codigo_barras") && <th className="p-2">Código de Barras</th>}
+                <th className="p-2">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-dark-card text-dark-text">
@@ -256,6 +282,16 @@ const Productos = () => {
                     {selectedExtraFields.includes("codigo_barras") && (
                       <td className="p-2 text-center">{producto.codigo_barras ?? "-"}</td>
                     )}
+                    <td className="p-2 text-center">
+                      <button
+                        onClick={() => handleAnalyzeProduct(producto)}
+                        className="px-3 py-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded hover:from-purple-700 hover:to-purple-800 transition-all text-xs flex items-center gap-1 mx-auto"
+                        title="Analizar con IA"
+                      >
+                        <Sparkles size={14} />
+                        IA
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
@@ -303,6 +339,95 @@ const Productos = () => {
             className="px-4 py-2 rounded bg-primary-600 hover:bg-primary-700 text-white transition-colors shadow-md"
           >
             Aplicar
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal de Análisis IA */}
+      <Modal
+        isOpen={showAIModal}
+        onClose={() => {
+          setShowAIModal(false);
+          setSelectedProduct(null);
+          setAiAnalysis(null);
+        }}
+        title={`Análisis Inteligente: ${selectedProduct?.descripcion || ''}`}
+        size="lg"
+      >
+        {loadingAI ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <span className="ml-3 text-dark-text">Analizando producto...</span>
+          </div>
+        ) : aiAnalysis ? (
+          <div className="space-y-4">
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-blue-600 mt-1" size={20} />
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Resumen</h4>
+                  <p className="text-gray-700 text-sm">{aiAnalysis.resumen}</p>
+                </div>
+              </div>
+            </div>
+
+            {aiAnalysis.productos_complementarios && aiAnalysis.productos_complementarios.length > 0 && (
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <div className="flex items-start gap-3">
+                  <Package className="text-green-600 mt-1" size={20} />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800 mb-2">Productos Complementarios</h4>
+                    <ul className="space-y-2">
+                      {aiAnalysis.productos_complementarios.map((prod: string, idx: number) => (
+                        <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                          <span className="text-green-600">•</span>
+                          {prod}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="text-yellow-600 mt-1" size={20} />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-800 mb-2">Recomendaciones</h4>
+                  <ul className="space-y-2">
+                    {aiAnalysis.recomendaciones?.map((rec: string, idx: number) => (
+                      <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                        <span className="text-yellow-600">•</span>
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+              <h4 className="font-semibold text-gray-800 mb-2">Análisis Detallado</h4>
+              <p className="text-gray-700 text-sm whitespace-pre-line">{aiAnalysis.analisis_detallado}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            No se pudo generar el análisis
+          </div>
+        )}
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={() => {
+              setShowAIModal(false);
+              setSelectedProduct(null);
+              setAiAnalysis(null);
+            }}
+            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors"
+          >
+            Cerrar
           </button>
         </div>
       </Modal>

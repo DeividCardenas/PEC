@@ -346,13 +346,20 @@ const CrearEntrega = async (req, res) => {
           },
         });
 
+        // Obtener stock actual antes de descontar
+        const productoActual = await tx.producto.findUnique({
+          where: { id_producto: parseInt(item.id_producto) },
+          select: { stock_actual: true },
+        });
+
+        const stockAnterior = productoActual.stock_actual;
+        const stockNuevo = stockAnterior - parseInt(item.cantidad);
+
         // Descontar del inventario
         await tx.producto.update({
           where: { id_producto: parseInt(item.id_producto) },
           data: {
-            stock_actual: {
-              decrement: parseInt(item.cantidad),
-            },
+            stock_actual: stockNuevo,
           },
         });
 
@@ -362,9 +369,11 @@ const CrearEntrega = async (req, res) => {
             id_producto: parseInt(item.id_producto),
             tipo_movimiento: "Salida",
             cantidad: parseInt(item.cantidad),
+            stock_anterior: stockAnterior,
+            stock_nuevo: stockNuevo,
             motivo: `Entrega a paciente - Pedido ${numero_pedido}`,
             id_usuario: id_usuario_creador,
-            documento_referencia: numero_pedido,
+            numero_referencia: numero_pedido,
           },
         });
       }
@@ -637,12 +646,19 @@ const CancelarEntrega = async (req, res) => {
     const entregaCancelada = await prisma.$transaction(async (tx) => {
       // 1. Devolver productos al inventario
       for (const detalle of entrega.detalles) {
+        // Obtener stock actual antes de incrementar
+        const productoActual = await tx.producto.findUnique({
+          where: { id_producto: detalle.id_producto },
+          select: { stock_actual: true },
+        });
+
+        const stockAnterior = productoActual.stock_actual;
+        const stockNuevo = stockAnterior + detalle.cantidad;
+
         await tx.producto.update({
           where: { id_producto: detalle.id_producto },
           data: {
-            stock_actual: {
-              increment: detalle.cantidad,
-            },
+            stock_actual: stockNuevo,
           },
         });
 
@@ -652,9 +668,11 @@ const CancelarEntrega = async (req, res) => {
             id_producto: detalle.id_producto,
             tipo_movimiento: "Entrada",
             cantidad: detalle.cantidad,
+            stock_anterior: stockAnterior,
+            stock_nuevo: stockNuevo,
             motivo: `Cancelación de entrega - Pedido ${entrega.numero_pedido}: ${motivo}`,
             id_usuario,
-            documento_referencia: entrega.numero_pedido,
+            numero_referencia: entrega.numero_pedido,
           },
         });
       }

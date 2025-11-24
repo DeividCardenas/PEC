@@ -12,7 +12,7 @@ import {
   faTimesCircle,
   faClock,
 } from "@fortawesome/free-solid-svg-icons";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles, TrendingDown, Lightbulb, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   fetchOrdenes,
@@ -34,6 +34,7 @@ import {
 import { fetchProveedores, Proveedor } from "../../services/Proveedores/proveedoresService";
 import { fetchProductos } from "../../services/Productos/productosService";
 import { Producto } from "../../types";
+import { analyzePurchaseOrders, optimizeOrderConsolidation } from "../../services/Ordenes/ordenesAIService";
 import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -69,6 +70,11 @@ const OrdenesCompra = () => {
   // Estado para historial (RF004)
   const [historial, setHistorial] = useState<HistorialCambio[]>([]);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
+
+  // Estados para IA
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   // Datos de formularios
   const [selectedOrden, setSelectedOrden] = useState<OrdenCompra | null>(null);
@@ -147,7 +153,13 @@ const OrdenesCompra = () => {
     }
     try {
       const response = await fetchProductos({ descripcion: termino, limit: 10 });
-      setProductos(response.productos);
+      // Normalizar el campo 'regulacion' que puede venir como null desde el servicio
+      // y convertirlo a undefined para ajustarse al tipo local Producto (evita incompatibilidades).
+      const normalized = response.productos.map((p) => ({
+        ...p,
+        regulacion: p.regulacion ?? undefined,
+      }));
+      setProductos(normalized as Producto[]);
     } catch (error) {
       console.error("Error al buscar productos:", error);
     }
@@ -424,7 +436,7 @@ const OrdenesCompra = () => {
     }
 
     try {
-      await marcarEnProceso(orden.id_orden_compra, { id_usuario: user.id });
+      await marcarEnProceso(orden.id_orden_compra, user.id);
       toast.success("Orden marcada como en proceso");
       fetchOrdenesData();
       loadEstadisticas();
@@ -442,13 +454,58 @@ const OrdenesCompra = () => {
 
     try {
       const response = await fetchHistorial(orden.id_orden_compra);
-      setHistorial(response.historial);
+      // El servicio puede devolver directamente un array o estar envuelto en distintos campos.
+      // Manejar las formas más comunes y reintentar asignar al estado.
+      if (Array.isArray(response)) {
+        setHistorial(response);
+      } else if ((response as any).historial && Array.isArray((response as any).historial)) {
+        setHistorial((response as any).historial);
+      } else if ((response as any).data && Array.isArray((response as any).data)) {
+        setHistorial((response as any).data);
+      } else {
+        // Formato inesperado: registrar y limpiar historial para evitar errores en la UI
+        console.warn("Formato de historial inesperado:", response);
+        setHistorial([]);
+      }
     } catch (error: any) {
       console.error("Error al cargar historial:", error);
       toast.error("Error al cargar el historial de la orden");
       setHistorial([]);
     } finally {
       setLoadingHistorial(false);
+    }
+  };
+
+  // Análisis con IA
+  const handleAnalyzeOrders = async () => {
+    setLoadingAI(true);
+    setShowAIPanel(true);
+    try {
+      // Mapear órdenes al formato esperado por el servicio de IA
+      const ordenesData = ordenes.map(orden => ({
+        id: orden.id_orden_compra,
+        proveedor: orden.proveedor?.nombre || 'N/A',
+        productos: (orden.detalles || []).map(detalle => ({
+          nombre: detalle.producto?.descripcion || 'Producto',
+          cantidad: detalle.cantidad,
+          precio_unitario: Number(detalle.precio_unitario),
+          subtotal: detalle.cantidad * Number(detalle.precio_unitario),
+        })),
+        total: Number(orden.total),
+        estado: orden.estado,
+        fecha_creacion: orden.fecha_orden,
+        fecha_entrega: orden.fecha_entrega_estimada || undefined,
+      }));
+      
+      const analysis = await analyzePurchaseOrders(ordenesData);
+      setAiAnalysis(analysis);
+      toast.success("Análisis completado");
+    } catch (error) {
+      console.error("Error al analizar órdenes:", error);
+      toast.error("Error al realizar el análisis con IA");
+      setAiAnalysis(null);
+    } finally {
+      setLoadingAI(false);
     }
   };
 
@@ -503,15 +560,118 @@ const OrdenesCompra = () => {
             <span className="font-medium">Volver al Menú</span>
           </button>
           <h1 className="text-3xl font-bold text-dark-text">Órdenes de Compra</h1>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition-colors"
-          >
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            Nueva Orden
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleAnalyzeOrders}
+              disabled={loadingAI || ordenes.length === 0}
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg shadow-md transition-colors hover:from-purple-700 hover:to-purple-800 disabled:opacity-50"
+            >
+              <Sparkles size={18} className="mr-2" />
+              {loadingAI ? "Analizando..." : "Análisis IA"}
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition-colors"
+            >
+              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              Nueva Orden
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Panel de Análisis IA */}
+      {showAIPanel && aiAnalysis && (
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto mb-6 bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-2 border-purple-500/50 rounded-lg p-6 shadow-2xl backdrop-blur-sm">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Sparkles className="text-purple-400" size={28} />
+                </div>
+                <h3 className="text-xl font-bold text-white">Análisis Inteligente de Órdenes de Compra</h3>
+              </div>
+              <button
+                onClick={() => setShowAIPanel(false)}
+                className="text-gray-400 hover:text-white text-2xl font-bold transition-colors hover:bg-red-500/20 rounded-lg w-8 h-8 flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Resumen */}
+            <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-blue-500/30 shadow-lg">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-blue-400 mt-1 flex-shrink-0" size={22} />
+                <div>
+                  <h4 className="font-semibold text-white mb-2 text-lg">Resumen Ejecutivo</h4>
+                  <p className="text-gray-300 leading-relaxed">{aiAnalysis.resumen}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Optimización de Costos */}
+            {aiAnalysis.optimizacion_costos && (
+              <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-green-500/30 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <TrendingDown className="text-green-400 mt-1 flex-shrink-0" size={22} />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-3 text-lg">Optimización de Costos</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4">
+                        <div className="text-xs text-green-300 mb-1 font-medium">Ahorro Potencial</div>
+                        <div className="text-xl font-bold text-green-400">
+                          {new Intl.NumberFormat("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                            minimumFractionDigits: 0,
+                          }).format(aiAnalysis.optimizacion_costos.ahorro_potencial || 0)}
+                        </div>
+                      </div>
+                      <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4">
+                        <div className="text-xs text-green-300 mb-1 font-medium">Porcentaje</div>
+                        <div className="text-xl font-bold text-green-400">
+                          {(aiAnalysis.optimizacion_costos.porcentaje_ahorro || 0).toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4">
+                        <div className="text-xs text-green-300 mb-1 font-medium">Oportunidades</div>
+                        <div className="text-xl font-bold text-green-400">
+                          {aiAnalysis.optimizacion_costos.oportunidades?.length || 0}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Recomendaciones */}
+            <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-yellow-500/30 shadow-lg">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="text-yellow-400 mt-1 flex-shrink-0" size={22} />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white mb-3 text-lg">Recomendaciones</h4>
+                  <ul className="space-y-3">
+                    {aiAnalysis.recomendaciones?.map((rec: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3 group">
+                        <span className="text-yellow-400 mt-1 text-lg">•</span>
+                        <span className="text-gray-300 leading-relaxed group-hover:text-white transition-colors">{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Análisis Detallado */}
+            <div className="bg-dark-card/80 rounded-lg p-5 border border-purple-500/30 shadow-lg">
+              <h4 className="font-semibold text-white mb-3 text-lg">Análisis Detallado</h4>
+              <p className="text-gray-300 whitespace-pre-line leading-relaxed">{aiAnalysis.analisis_detallado}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Estadísticas */}
       {estadisticas && (

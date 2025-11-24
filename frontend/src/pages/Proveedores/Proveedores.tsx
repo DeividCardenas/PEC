@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Edit2, Trash2, Eye, X } from "lucide-react";
+import { ArrowLeft, Plus, Edit2, Trash2, Eye, X, Sparkles, TrendingUp, Lightbulb, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   fetchProveedores,
@@ -18,6 +18,7 @@ import {
 } from "../../services/Proveedores/proveedoresService";
 import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
+import { analyzeProviders, generateNegotiationStrategy } from "../../services/Proveedores/proveedoresAIService";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Badge from "../../components/Badge";
@@ -72,6 +73,11 @@ const Proveedores = () => {
   const [transaccionesTotal, setTransaccionesTotal] = useState(0);
   const [transaccionesPage, setTransaccionesPage] = useState(1);
   const [transaccionesTotalPages, setTransaccionesTotalPages] = useState(1);
+
+  // Estados para IA
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -241,6 +247,33 @@ const Proveedores = () => {
     }
   };
 
+  // Análisis con IA
+  const handleAnalyzeProviders = async () => {
+    setLoadingAI(true);
+    setShowAIPanel(true);
+    try {
+      // Mapear proveedores para que coincidan con ProviderData (sin valores null)
+      const proveedoresData = proveedores.map(p => ({
+        nombre: p.nombre,
+        tipo: p.tipo || undefined,
+        laboratorio: p.laboratorio || undefined,
+        direccion: p.direccion || undefined,
+        telefono: p.telefono || undefined,
+        email: p.email || undefined,
+      }));
+      
+      const analysis = await analyzeProviders(proveedoresData);
+      setAiAnalysis(analysis);
+      toast.success("Análisis completado");
+    } catch (error) {
+      console.error("Error al analizar proveedores:", error);
+      toast.error("Error al realizar el análisis con IA");
+      setAiAnalysis(null);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
   // Helpers
   const resetFormData = () => {
     setFormData({
@@ -391,19 +424,105 @@ const Proveedores = () => {
                 <p className="text-dark-text-secondary mt-1">Administra los proveedores y sus transacciones</p>
               </div>
             </div>
-            <Button
-              variant="success"
-              onClick={() => setShowCreateModal(true)}
-              icon={<Plus size={20} />}
-            >
-              Nuevo Proveedor
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="primary"
+                onClick={handleAnalyzeProviders}
+                disabled={loadingAI || proveedores.length === 0}
+                icon={<Sparkles size={20} />}
+              >
+                {loadingAI ? "Analizando..." : "Análisis IA"}
+              </Button>
+              <Button
+                variant="success"
+                onClick={() => setShowCreateModal(true)}
+                icon={<Plus size={20} />}
+              >
+                Nuevo Proveedor
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Panel de Análisis IA */}
+        {showAIPanel && aiAnalysis && (
+          <div className="mb-6 bg-gradient-to-br from-purple-900/30 to-blue-900/30 border-2 border-purple-500/50 rounded-lg p-6 shadow-2xl backdrop-blur-sm">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Sparkles className="text-purple-400" size={28} />
+                </div>
+                <h3 className="text-xl font-bold text-white">Análisis Inteligente de Proveedores</h3>
+              </div>
+              <button
+                onClick={() => setShowAIPanel(false)}
+                className="text-gray-400 hover:text-white text-2xl font-bold transition-colors hover:bg-red-500/20 rounded-lg w-8 h-8 flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-blue-500/30 shadow-lg">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-blue-400 mt-1 flex-shrink-0" size={22} />
+                <div>
+                  <h4 className="font-semibold text-white mb-2 text-lg">Resumen Ejecutivo</h4>
+                  <p className="text-gray-300 leading-relaxed">{aiAnalysis.resumen}</p>
+                </div>
+              </div>
+            </div>
+
+            {aiAnalysis.mejores_proveedores && aiAnalysis.mejores_proveedores.length > 0 && (
+              <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-green-500/30 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="text-green-400 mt-1 flex-shrink-0" size={22} />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-3 text-lg">Mejores Proveedores</h4>
+                    <div className="space-y-2">
+                      {aiAnalysis.mejores_proveedores.map((prov: any, idx: number) => (
+                        <div key={idx} className="bg-white/5 rounded p-3 border border-green-500/20">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-white">{prov.nombre}</p>
+                              <p className="text-sm text-gray-300 mt-1">Puntuación: {prov.puntuacion}/10</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-300 mt-2">{prov.razon}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-4 bg-dark-card/80 rounded-lg p-5 border border-yellow-500/30 shadow-lg">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="text-yellow-400 mt-1 flex-shrink-0" size={22} />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-white mb-3 text-lg">Recomendaciones</h4>
+                  <ul className="space-y-3">
+                    {aiAnalysis.recomendaciones?.map((rec: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3 group">
+                        <span className="text-yellow-400 mt-1 text-lg">•</span>
+                        <span className="text-gray-300 leading-relaxed group-hover:text-white transition-colors">{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-dark-card/80 rounded-lg p-5 border border-purple-500/30 shadow-lg">
+              <h4 className="font-semibold text-white mb-3 text-lg">Análisis Detallado</h4>
+              <p className="text-gray-300 whitespace-pre-line leading-relaxed">{aiAnalysis.analisis_detallado}</p>
+            </div>
+          </div>
+        )}
+
         <Card>
           <CardContent>
             {/* Filtros */}

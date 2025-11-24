@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { axiosInstance, setBaseURL } from '../Shared/axiosInstance';
 
 // Definir un tipo para los parámetros de búsqueda
 export interface AdminParams {
@@ -68,11 +68,16 @@ interface Laboratorio {
 }
 
 interface EmpresaResponse {
-  totalEmpresas: number;
-  totalPaginas: number;
-  paginaActual: number;
-  tamanoPagina: number;
-  empresas: Empresa[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  data?: Empresa[];
+  // Formato alternativo (por si acaso)
+  totalEmpresas?: number;
+  totalPaginas?: number;
+  paginaActual?: number;
+  tamanoPagina?: number;
+  empresas?: Empresa[];
 }
 
 interface Empresa {
@@ -101,14 +106,14 @@ export const fetchUsers = async (
   filters: Partial<AdminParams>
 ): Promise<UsuarioResponse> => {
   try {
+    setBaseURL('usuario');
     const params: QueryParams = {
       ...filters,
       page: filters.page ?? 1,
       limit: filters.limit ?? 10,
     };
 
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.get<UsuarioResponse>(`${baseURL}/usuario`, { params });
+    const response = await axiosInstance.get<UsuarioResponse>('', { params });
 
     return response.data;
   } catch (error) {
@@ -122,14 +127,14 @@ export const fetchEps = async (
   filters: Partial<AdminParams>
 ): Promise<EpsResponse> => {
   try {
+    setBaseURL('eps');
     const params: QueryParams = {
       ...filters,
       page: filters.page ?? 1,
       limit: filters.limit ?? 10,
     };
 
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.get<EpsResponse>(`${baseURL}/eps`, { params });
+    const response = await axiosInstance.get<EpsResponse>('', { params });
 
     return response.data;
   } catch (error) {
@@ -172,14 +177,14 @@ export const fetchLaboratorios = async (
   filters: Partial<AdminParams>
 ): Promise<any> => {
   try {
+    setBaseURL('laboratorio');
     const params: QueryParams = {
       ...filters,
       page: filters.page ?? 1,
       limit: filters.limit ?? 10,
     };
 
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.get<LaboratorioResponse>(`${baseURL}/laboratorio`, { params });
+    const response = await axiosInstance.get<LaboratorioResponse>('', { params });
 
   // Debug: log response shape to help diagnose frontend/backend mismatches
   console.debug("fetchLaboratorios response.data:", response.data);
@@ -195,18 +200,30 @@ export const fetchLaboratorios = async (
 // Función para obtener empresas con filtros y paginación
 export const fetchEmpresas = async (
   filters: Partial<AdminParams>
-): Promise<EmpresaResponse> => {
+): Promise<any> => {
   try {
+    setBaseURL('empresa');
     const params: QueryParams = {
       ...filters,
       page: filters.page ?? 1,
       limit: filters.limit ?? 10,
     };
 
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.get<EmpresaResponse>(`${baseURL}/empresa`, { params });
+    const response = await axiosInstance.get<EmpresaResponse>('', { params });
 
-    return response.data;
+    console.log("Respuesta raw del backend:", response.data);
+
+    // Normalizar respuesta: el backend devuelve { total, page, limit, data }
+    // pero el frontend espera { empresas }
+    const normalized = {
+      empresas: response.data.data || response.data.empresas || [],
+      total: response.data.total || response.data.totalEmpresas || 0,
+      page: response.data.page || response.data.paginaActual || 1,
+      limit: response.data.limit || response.data.tamanoPagina || 10,
+    };
+
+    console.log("Respuesta normalizada:", normalized);
+    return normalized;
   } catch (error) {
     console.error("Error al obtener empresas:", error);
     throw new Error("No se pudo obtener las empresas");
@@ -221,8 +238,8 @@ export const updateUser = async (
   userData: UserUpdateData
 ): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.put(`${baseURL}/usuario/${userId}`, userData);
+    setBaseURL('usuario');
+    const response = await axiosInstance.put(`/${userId}`, userData);
     return response.data;
   } catch (error) {
     console.error("Error al actualizar el usuario:", error);
@@ -236,8 +253,8 @@ export const updateEps = async (
   epsData: GenericUpdateData
 ): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.put(`${baseURL}/eps/${epsId}`, epsData);
+    setBaseURL('eps');
+    const response = await axiosInstance.put(`/${epsId}`, epsData);
     return response.data;
   } catch (error) {
     console.error("Error al actualizar la EPS:", error);
@@ -251,8 +268,8 @@ export const updateLaboratorio = async (
   labData: GenericUpdateData
 ): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.put(`${baseURL}/laboratorio/${labId}`, labData);
+    setBaseURL('laboratorio');
+    const response = await axiosInstance.put(`/${labId}`, labData);
     return response.data;
   } catch (error) {
     console.error("Error al actualizar el laboratorio:", error);
@@ -266,8 +283,8 @@ export const updateEmpresa = async (
   empresaData: GenericUpdateData
 ): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.put(`${baseURL}/empresa/${empresaId}`, empresaData);
+    setBaseURL('empresa');
+    const response = await axiosInstance.put(`/${empresaId}`, empresaData);
     return response.data;
   } catch (error) {
     console.error("Error al actualizar la empresa:", error);
@@ -280,8 +297,8 @@ export const updateEmpresa = async (
 // Eliminar usuario
 export const deleteUser = async (userId: number): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.delete(`${baseURL}/usuario/${userId}`);
+    setBaseURL('usuario');
+    const response = await axiosInstance.delete(`/${userId}`);
     return response.data;
   } catch (error) {
     console.error("Error al eliminar el usuario:", error);
@@ -292,8 +309,8 @@ export const deleteUser = async (userId: number): Promise<any> => {
 // Eliminar EPS
 export const deleteEps = async (epsId: number): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.delete(`${baseURL}/eps/${epsId}`);
+    setBaseURL('eps');
+    const response = await axiosInstance.delete(`/${epsId}`);
     return response.data;
   } catch (error) {
     console.error("Error al eliminar la EPS:", error);
@@ -304,8 +321,8 @@ export const deleteEps = async (epsId: number): Promise<any> => {
 // Eliminar Laboratorio
 export const deleteLaboratorio = async (labId: number): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.delete(`${baseURL}/laboratorio/${labId}`);
+    setBaseURL('laboratorio');
+    const response = await axiosInstance.delete(`/${labId}`);
     return response.data;
   } catch (error) {
     console.error("Error al eliminar el laboratorio:", error);
@@ -316,8 +333,8 @@ export const deleteLaboratorio = async (labId: number): Promise<any> => {
 // Eliminar Empresa
 export const deleteEmpresa = async (empresaId: number): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.delete(`${baseURL}/empresa/${empresaId}`);
+    setBaseURL('empresa');
+    const response = await axiosInstance.delete(`/${empresaId}`);
     return response.data;
   } catch (error) {
     console.error("Error al eliminar la empresa:", error);
@@ -328,8 +345,8 @@ export const deleteEmpresa = async (empresaId: number): Promise<any> => {
 //agregar eps
 export const addEps = async (epsData: GenericUpdateData): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.post(`${baseURL}/eps`, epsData);
+    setBaseURL('eps');
+    const response = await axiosInstance.post('', epsData);
     return response.data;
   } catch (error) {
     console.error("Error al agregar la EPS:", error);
@@ -342,8 +359,8 @@ export const addLaboratorio = async (
   labData: GenericUpdateData
 ): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.post(`${baseURL}/laboratorio`, labData);
+    setBaseURL('laboratorio');
+    const response = await axiosInstance.post('', labData);
     return response.data;
   } catch (error) {
     console.error("Error al agregar el laboratorio:", error);
@@ -356,8 +373,8 @@ export const addEmpresa = async (
   empresaData: GenericUpdateData
 ): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-  const response = await axios.post(`${baseURL}/empresa`, empresaData);
+    setBaseURL('empresa');
+    const response = await axiosInstance.post('', empresaData);
     return response.data;
   } catch (error) {
     console.error("Error al agregar la empresa:", error);
@@ -371,8 +388,8 @@ export const associateEmpresaLaboratorio = async (
   id_laboratorio: number[]
 ): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-    const response = await axios.post(`${baseURL}/empresa-laboratorio`, { id_empresa, id_laboratorio });
+    setBaseURL('empresa-laboratorio');
+    const response = await axiosInstance.post('', { id_empresa, id_laboratorio });
     return response.data;
   } catch (error: any) {
     console.error('Error al asociar empresa-laboratorio:', error?.response?.data || error.message);
@@ -385,8 +402,8 @@ export const associateEmpresaLaboratorio = async (
 // Agregar producto (uso sencillo desde la UI)
 export const addProducto = async (productoData: any): Promise<any> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-    const response = await axios.post(`${baseURL}/productos`, productoData);
+    setBaseURL('producto');
+    const response = await axiosInstance.post('', productoData);
     return response.data;
   } catch (error: any) {
     console.error('Error al agregar producto:', error?.response?.data || error.message);
@@ -398,8 +415,8 @@ export const addProducto = async (productoData: any): Promise<any> => {
 // Obtener todos los roles
 export const fetchRoles = async (): Promise<Rol[]> => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:2000';
-    const response = await axios.get(`${baseURL}/rol`);
+    setBaseURL('rol');
+    const response = await axiosInstance.get('');
     return response.data.roles || response.data;
   } catch (error) {
     console.error('Error al obtener roles:', error);

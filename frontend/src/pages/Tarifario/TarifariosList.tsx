@@ -35,10 +35,10 @@ const TarifariosList: React.FC = () => {
   }, [page]);
 
   return (
-    <div className="p-6 bg-sky-900 min-h-screen flex flex-col items-center">
+    <div className="p-6 bg-dark-bg min-h-screen flex flex-col items-center">
       <button
         onClick={() => navigate("/Menu")}
-        className="self-start mb-4 px-4 py-2 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg shadow-md"
+        className="self-start mb-4 px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white rounded-lg shadow-md transition-all duration-300"
       >
         Volver al Menú Principal
       </button>
@@ -51,18 +51,18 @@ const TarifariosList: React.FC = () => {
             {tarifarios.map((tarifario) => (
               <li
                 key={tarifario.id_tarifario}
-                className="bg-white rounded-lg p-4 shadow hover:shadow-lg transition cursor-pointer"
+                className="bg-dark-card rounded-lg p-4 shadow-lg hover:shadow-xl border border-primary-500/30 hover:border-primary-500 transition-all duration-300 cursor-pointer hover:bg-primary-900/20"
                 onClick={() => navigate(`/tarifario/${tarifario.id_tarifario}`)}
               >
-                <h3 className="text-xl font-semibold text-indigo-900">{tarifario.nombre}</h3>
+                <h3 className="text-xl font-semibold text-white">{tarifario.nombre}</h3>
               </li>
             ))}
           </ul>
-          <div className="mt-6 flex justify-between w-full max-w-4xl text-white">
+          <div className="mt-6 flex justify-between items-center w-full max-w-4xl text-white">
             <button
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              className="px-4 py-2 bg-indigo-700 rounded disabled:opacity-50"
+              className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
@@ -72,7 +72,7 @@ const TarifariosList: React.FC = () => {
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="px-4 py-2 bg-indigo-700 rounded disabled:opacity-50"
+              className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-700 hover:to-primary-900 text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Siguiente
             </button>
