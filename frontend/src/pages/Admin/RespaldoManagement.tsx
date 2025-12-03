@@ -53,7 +53,7 @@ const RespaldoManagement: React.FC = () => {
 
     try {
       setLoading(true);
-      const baseURL = import.meta.env.VITE_API_URL || "http://localhost:2000";
+      const baseURL = import.meta.env.VITE_API_URL || "http://localhost:2000/pec";
 
       const response = await fetch(`${baseURL}/admin/backup/create`, {
         method: "POST",
@@ -64,7 +64,8 @@ const RespaldoManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Error al crear el respaldo");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.msg || "Error al crear el respaldo");
       }
 
       // Descargar el archivo de backup
@@ -114,7 +115,7 @@ const RespaldoManagement: React.FC = () => {
 
     try {
       setLoading(true);
-      const baseURL = import.meta.env.VITE_API_URL || "http://localhost:2000";
+      const baseURL = import.meta.env.VITE_API_URL || "http://localhost:2000/pec";
 
       const formData = new FormData();
       formData.append("backup", uploadedFile);
@@ -128,7 +129,8 @@ const RespaldoManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Error al restaurar el respaldo");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.msg || "Error al restaurar el respaldo");
       }
 
       toast.success(
