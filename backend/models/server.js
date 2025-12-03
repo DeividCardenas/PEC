@@ -175,6 +175,8 @@ class Server {
     this.app.use(this.path + "compare", require("../routes/compare/Compare.routes"));
     // Ruta para debug (diagnóstico)
     this.app.use(this.path + "debug", require("../routes/debug/Debug.routes"));
+    // Rutas de administración - Respaldos
+    this.app.use(this.path + "admin/backup", require("../routes/admin/Backup.routes"));
   }
 
   /**
